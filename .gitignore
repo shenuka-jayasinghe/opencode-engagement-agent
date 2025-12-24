@@ -1,0 +1,4 @@
+*engagement_agent_config.json
+tools/templates/*
+*venv
+*pycache*
