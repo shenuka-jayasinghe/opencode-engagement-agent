@@ -20,10 +20,10 @@ A proactive AI assistant for consultants working on client engagements. Seamless
 brew install opencode
 ```
 
-### 2. Launch OpenCode
+### 2. Launch OpenCode In this Repo
 
 ```bash
-opencode -c gen-ai-examples/engagement-agent
+opencode
 ```
 
 This opens OpenCode in the engagement-agent directory.
