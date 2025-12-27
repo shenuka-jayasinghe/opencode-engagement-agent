@@ -44,16 +44,6 @@ Select your preferred model from the list (e.g., Claude 3.5 Sonnet, GPT-4, etc.)
 ```
 Follow the prompts to connect to your AI provider.
 
-**Important: Prime the AI with context**
-
-After connecting to a new model, always start by referencing the agent instructions:
-
-```
-@AGENTS.md
-```
-
-This loads the Engagement Agent's system prompt, guiding principles, and tool usage instructions into the AI's context. Do this every time you start a new session or switch models.
-
 ### 4. Onboard Your Credentials
 
 Run the onboarding command to set up your integrations:

@@ -5,6 +5,7 @@ import datetime
 from typing import List, Dict
 import json
 from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
@@ -47,7 +48,13 @@ def get_gmail_service():
         creds = Credentials.from_authorized_user_file(G_TOKEN_FILE, G_SCOPES)
 
     if not creds or not creds.valid:
-        raise RuntimeError(f"'{G_TOKEN_FILE}' not found or invalid. Please run setup_auth.py to authenticate.")
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+            # Save the credentials for the next run
+            with open(G_TOKEN_FILE, 'w') as token:
+                token.write(creds.to_json())
+        else:
+            raise RuntimeError(f"'{G_TOKEN_FILE}' not found or invalid. Please run setup_auth.py to authenticate.")
 
     return build("gmail", "v1", credentials=creds)
 
