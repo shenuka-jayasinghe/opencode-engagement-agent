@@ -146,7 +146,7 @@
     "personal-knowledge": {
       "type": "local",
       "command": ["bunx", "opencode-personal-knowledge"],
-      "enabled": false
+      "enabled": true
     }
   }
 }
