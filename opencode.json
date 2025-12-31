@@ -5,12 +5,12 @@
   "enabled_providers": [
     "google",
     "github-copilot",
-    "amazon-bedrock",
+    "amazon-bedrock"
   ],
     "permission": {
     "bash": {
       "python tools/confluence_tool.py search *": "allow",
-      "python tools/confluence_tool.py *": "allow",
+      "python tools/confluence_tool.py *": "allow"
     }
   },
   "agent": {
@@ -101,7 +101,7 @@
         "gemini-live-2.5-flash-preview-native-audio"
       ],
       "options": {
-        "apiKey": "{env:GEMINI_API_KEY}",
+        "apiKey": "{env:GEMINI_API_KEY}"
       }
     },
     "github-copilot": {
@@ -136,6 +136,17 @@
         "anthropic.claude-v2",
         "anthropic.claude-v2:1"
       ]
+    }
+  },
+  "compaction": {
+    "auto": false,
+    "prune": false
+  },
+  "mcp": {
+    "personal-knowledge": {
+      "type": "local",
+      "command": ["bunx", "opencode-personal-knowledge"],
+      "enabled": false
     }
   }
 }

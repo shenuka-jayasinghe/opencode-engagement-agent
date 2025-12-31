@@ -2,3 +2,4 @@
 tools/templates/*
 *venv
 *pycache*
+*local_cache*

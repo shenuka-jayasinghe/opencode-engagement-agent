@@ -45,6 +45,37 @@ Select your preferred model from the list (e.g., Claude 3.5 Sonnet, GPT-4, etc.)
 ```
 Follow the prompts to connect to your AI provider.
 
+**Setting up Google Gemini models:**
+
+If using Google models (e.g., Gemini 2.5 Flash), you'll need to configure API access:
+
+1. Get your API key from [Google AI Studio](https://aistudio.google.com/)
+
+2. Store the API key securely in macOS Keychain:
+   ```bash
+   security add-generic-password -a $USER -s "GeminiAPICredential" -w "YOUR_API_KEY_HERE"
+   ```
+
+3. Add to your `~/.zshrc`:
+   ```bash
+   export GEMINI_API_KEY=$(security find-generic-password -s "GeminiAPICredential" -w)
+   ```
+
+4. Refresh your shell:
+   ```bash
+   source ~/.zshrc
+   ```
+
+**Setting up AWS Bedrock models:**
+
+If using AWS Bedrock models (e.g., Claude 3.5 Sonnet via Bedrock), you'll need AWS account access:
+
+1. Request admin AWS access to account: **144986566169**
+
+2. Configure your AWS profile in `~/.aws/config` (if not already configured)
+
+3. Ensure you have appropriate Bedrock model access in the AWS account
+
 ### 4. Onboard Your Credentials
 
 Run the onboarding command to set up your integrations:
@@ -162,6 +193,156 @@ See `.opencode/skill/aws-security.md` for detailed documentation.
 - `/help` - Show available commands
 - `Ctrl+P` - List available actions
 - `Ctrl+C` - Cancel current operation
+
+## Personal Knowledge Management
+
+The Engagement Agent automatically builds a **personal knowledge vector database** from your conversations. This creates a searchable memory of technical patterns, configurations, and solutions specific to your projects.
+
+### How It Works
+
+The agent uses **two complementary systems** to preserve knowledge:
+
+#### 1. **Automatic Knowledge Entries** (Default Behavior)
+
+The agent **proactively saves** important technical information during conversations:
+
+**What gets saved automatically:**
+- ✅ Code patterns, commands, and configurations discussed
+- ✅ Technical decisions and architectural approaches
+- ✅ Problem-solving strategies and debugging steps
+- ✅ API endpoints and integration patterns (no actual secrets)
+- ✅ Solutions to resolved issues
+- ✅ Best practices and optimization techniques
+- ✅ Project-specific configurations and setup procedures
+
+**What does NOT get saved:**
+- ❌ Casual conversation or greetings
+- ❌ Questions without answers
+- ❌ Secrets, passwords, API keys, or credentials
+- ❌ Personal or private information
+- ❌ Trivial exchanges or clarifications
+- ❌ Content already documented in Confluence (links to Confluence instead)
+
+**When it saves:**
+- After resolving a technical problem
+- When discussing new patterns or approaches
+- After explaining configuration or setup steps
+- When making important technical decisions
+- After 2+ exchanges about a technical topic with code/commands/configurations
+
+**Example notification:**
+```
+📝 Stored in knowledge base: AWS Lambda Timeout Configuration Best Practices (Entry #42)
+```
+
+**Manual control:**
+```
+/store-knowledge          # Manually save the current conversation
+/search-knowledge <query> # Search your saved knowledge
+```
+
+#### 2. **Session Logging** (Optional, On-Demand)
+
+For complete conversation transcripts with turn-by-turn detail:
+
+```
+Start a logging session:
+> /start-logging "debugging auth flow"
+
+... conversation happens ...
+
+End the session:
+> /end-session "Fixed OAuth token refresh issue"
+```
+
+**Key differences:**
+
+| Feature | Knowledge Entries | Session Logging |
+|---------|------------------|-----------------|
+| **Activation** | Automatic (always on) | Manual (explicit start) |
+| **Granularity** | Key insights only | Every message turn |
+| **Use case** | Quick reference, patterns | Complete conversation history |
+| **Storage** | When insight detected | Continuous (every turn) |
+| **Search** | By topic/technology | By conversation context |
+
+### Searching Your Knowledge
+
+**Simple search:**
+```
+What is the matillionhub DNS record?
+```
+The agent automatically searches its knowledge base when you ask factual questions.
+
+**Explicit search:**
+```
+/search-knowledge AWS Lambda timeout
+```
+Returns top 5 most relevant entries with similarity scores.
+
+**View specific entry:**
+```
+Show me knowledge entry #42
+```
+
+**List all entries:**
+```
+List my knowledge entries tagged with "aws" and "debugging"
+```
+
+### Knowledge Organization
+
+**Automatic tagging:** The agent generates 3-5 relevant tags per entry:
+- **Technology**: `aws`, `python`, `docker`, `kubernetes`, `typescript`
+- **Activity**: `debugging`, `optimization`, `deployment`, `migration`, `testing`
+- **Domain**: `security`, `performance`, `cost`, `networking`, `database`
+- **Project-specific**: Terms from your `engagement_agent_config.json`
+
+**Example entry structure:**
+```
+Title: Windcheater AWS Account and Matillion DNS Records
+Tags: aws, windcheater, superdry, route53, dns, matillion, infrastructure, alb
+Content: [Full technical details with commands, outputs, and context]
+```
+
+### Privacy & Security
+
+- ✅ **Local storage**: All knowledge stored in your personal MCP server
+- ✅ **No secrets**: Automatically filters out credentials, tokens, keys
+- ✅ **No PII**: Excludes personal or private information
+- ✅ **User control**: Manually trigger, search, or disable storage
+- ✅ **Transparent**: You're notified when information is saved
+
+### Best Practices
+
+**To maximize value:**
+1. Let the agent save automatically - it's trained to identify valuable content
+2. Use descriptive language when discussing solutions ("This fixes X by doing Y")
+3. Explicitly request storage for edge cases: `/store-knowledge`
+4. Review stored knowledge periodically: `/search-knowledge recent configurations`
+5. Use session logging for complex debugging sessions you'll reference later
+
+**To maintain privacy:**
+1. Don't paste API keys or credentials in chat (agent filters, but better to avoid)
+2. Review entries if unsure: `Show me knowledge entry #X`
+3. Delete sensitive entries if accidentally stored: `Delete knowledge entry #X`
+
+### Example Workflow
+
+```
+You: How do I configure the Matillion ALB?
+Agent: Let me check my knowledge base...
+       [Returns DNS records from previous discussion]
+
+You: What was that Python virtual environment issue we fixed last month?
+Agent: [Searches knowledge base and finds the solution]
+
+You: Start logging, I'm about to debug a complex CloudTrail Lake query
+Agent: ✅ Started logging session #12 "CloudTrail Lake debugging"
+You: [Work through the problem]
+Agent: [Logs every turn automatically]
+You: End session, we fixed the SQL syntax issue
+Agent: ✅ Ended session #12 (23 messages logged)
+```
 
 ## Configuration
 
