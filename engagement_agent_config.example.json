@@ -22,21 +22,29 @@
     "email": "your-email@example.com",
     "api_token": "YOUR_CONFLUENCE_API_TOKEN_HERE"
   },
+  "bitbucket": {
+    "note": "Optional - uses Confluence credentials by default. Only needed if using different credentials for Bitbucket.",
+    "url": "https://api.bitbucket.org",
+    "email": "your-email@example.com",
+    "api_token": "YOUR_BITBUCKET_API_TOKEN_OR_APP_PASSWORD_HERE",
+    "cloud": true
+  },
   "agent" : {
     "from_time" : "2025-01-01", 
     "duration_days" : 7,
     "project_name" : "Your Project Name",
     "jira_project_key": "PROJ",
     "confluence_space_key": ["SPACE1","SPACE2"],
+    "bitbucket_workspace": "your-workspace-slug",
+    "bitbucket_project_key": "SUP",
     "cloud_environments": ["AWS"],
     "regions": ["us-east-1"],
     "wsr_template_url": "https://your-domain.atlassian.net/wiki/spaces/SPACE/pages/123456/Weekly+Status+Report+Template",
     "wsr_subject" : "Weekly Status Report: Your Project Name",
     "slack_channel_ids" : ["C01234567", "C01234568"],
     "client_slack_channel_id": "C01234567",
+    "pull_request_channel": "",
     "recipient_emails_to_scan" : ["colleague1@example.com", "colleague2@example.com"],
-    "stakeholder_emails" :["stakeholder@client.com"],
-    "system_prompt_file" : "AGENTS.md",
-    "prompt_file" : "AGENTS.md"
+    "stakeholder_emails" :["stakeholder@client.com"]
   }
 }

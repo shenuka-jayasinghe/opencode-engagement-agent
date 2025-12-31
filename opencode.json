@@ -1,6 +1,7 @@
 {
   "$schema": "https://opencode.ai/config.json",
-   "instructions": ["AGENTS.md"],
+   "instructions": ["INSTRUCTIONS.md"],
+   "theme": "superdry-and-co",
   "enabled_providers": [
     "google",
     "github-copilot",
@@ -24,7 +25,50 @@
       "mode": "subagent",
       "model": "amazon-bedrock/anthropic.claude-sonnet-4-5-20250929-v1:0",
       "tools": { "write": false, "edit": false, "bash": true }
+    },
+    "security-auditor": {
+      "description": "Analyzes code and logs for security vulnerabilities and compliance",
+      "mode": "subagent",
+      "model": "amazon-bedrock/anthropic.claude-sonnet-4-5-20250929-v1:0",
+      "tools": { "write": false, "edit": false, "bash": true }
+    },
+    "finops-advisor": {
+      "description": "AWS cost optimization, billing analysis, Reserved Instance recommendations, and financial operations",
+      "mode": "subagent",
+      "model": "amazon-bedrock/anthropic.claude-sonnet-4-5-20250929-v1:0",
+      "tools": { "write": false, "edit": false, "bash": true }
+    },
+    "jira-agent": {
+      "description": "Jira ticket management, project status tracking, sprint planning, and issue analysis",
+      "mode": "subagent",
+      "model": "google/gemini-2.5-flash",
+      "tools": { "write": false, "edit": false, "bash": true }
+    },
+    "confluence-agent": {
+      "description": "Confluence documentation search, page creation, and knowledge management",
+      "mode": "subagent",
+      "model": "google/gemini-2.5-flash",
+      "tools": { "write": false, "edit": false, "bash": true }
+    },
+    "slack-agent": {
+      "description": "Slack message analysis, channel monitoring, and team communication insights",
+      "mode": "subagent",
+      "model": "google/gemini-2.5-flash",
+      "tools": { "write": false, "edit": false, "bash": true }
+    },
+    "gmail-agent": {
+      "description": "Gmail email search, stakeholder communication monitoring, and email analysis",
+      "mode": "subagent",
+      "model": "google/gemini-2.5-flash",
+      "tools": { "write": false, "edit": false, "bash": true }
+    },
+    "bitbucket-agent": {
+      "description": "Bitbucket repository and PR management, code review monitoring, and commit tracking",
+      "mode": "subagent",
+      "model": "google/gemini-2.5-flash",
+      "tools": { "write": false, "edit": false, "bash": true }
     }
+
   },
   "provider": {
      "google": {

@@ -42,6 +42,22 @@ When this command is called, perform the following steps:
         ```bash
         python3 tools/jira_tool.py get-summary --project-key <key> --days 7 --max-results 100
         ```
+    *   **Bitbucket:** Get pull request activity for the reporting period:
+        *   Read `engagement_agent_config.json` to get `bitbucket_workspace` and `bitbucket_project_key`
+        *   For each key repository in the project, get recently merged PRs using:
+            ```bash
+            python3 tools/bitbucket_tool.py list-pull-requests <workspace> <repo_slug> --state MERGED --limit 20
+            ```
+        *   **Cross-reference with Jira:** Match PR descriptions/titles with Jira ticket numbers (e.g., "SD-4674")
+        *   **Filter by date:** Only include PRs merged within the 7-day reporting window (check "Created" dates)
+        *   **Key data to extract:**
+            - PR title and description
+            - Author and reviewers
+            - Related Jira ticket numbers
+            - Merge date and target branch
+        *   **Approach:**
+            - For 1-2 repositories: Execute bitbucket_tool.py directly for each repo
+            - For 3+ repositories: Consider delegating to bitbucket-agent for parallel execution
     *   **Confluence:** Get the `parent_id` from the `wsr_template_url` using `get-page-info`.
 
 4.  **Synthesize Content:**
@@ -55,13 +71,27 @@ When this command is called, perform the following steps:
         - If no blockers exist in the previous WSR, start with an empty list
     *   Analyze all gathered information to create:
         - **Executive Summary:** 2-3 sentences capturing the week's key themes
-        - **Key Achievements:** Pipe-separated list of completed work items
-        - **Upcoming Activities:** Pipe-separated list of planned work
+        - **Key Achievements:** 
+          * Start with completed Jira tickets from "Done" status
+          * Cross-reference with merged Bitbucket PRs to find associated work
+          * Include PR titles and link to Jira tickets (e.g., "Fix windcheater pipeline (SD-4702)")
+          * Format as pipe-separated list
+          * Example: "Deployed matillion hub RDS (SD-4674)|Updated fashion parameter store permissions (SD-4698)|Fixed pipeline assume role error (SD-4534)"
+        - **Upcoming Activities:** 
+          * Start with "In Progress" Jira tickets
+          * Add planned work mentioned in Slack/email
+          * Cross-reference with open PRs in Bitbucket for work in code review
+          * Format as pipe-separated list
         - **Blockers:** 
           * Start with blockers carried forward from previous WSR
           * Add any NEW blockers identified from this week's communications
           * Remove blockers only if explicitly resolved (see criteria above)
           * Use "None" only if no blockers exist at all
+    *   **Jira and Bitbucket Integration:**
+        - Use PR information to enrich Jira ticket context
+        - If a Jira ticket is "Done" but has a merged PR, include the PR details
+        - If a Jira ticket is "In Progress" with an open PR, note it's in code review
+        - Link PR activity to demonstrate tangible progress
     *   **Jira Ticket References:** Simply use plain text Jira ticket IDs (e.g., "SD-1234") in any section. The wsr_tool.py will automatically convert them to proper Confluence links. You can also provide pre-formatted links if you prefer, and they will be preserved.
         - Example: "Fix windcheater pipeline (SD-4702)" will be automatically converted to use proper links
         - Pre-formatted links like `<a href="...">SD-4702</a>` will also work
@@ -102,3 +132,11 @@ When this command is called, perform the following steps:
         - URL of the newly created WSR
         - Links to the 2-3 reference WSRs used for format verification
         - Confirmation that format matches previous WSRs (or note any differences)
+
+8.  **Open in Browser:**
+    *   After generating the WSR, verify the Confluence link is correct.
+    *   Open the newly created WSR in the user's default browser using:
+        ```bash
+        open [new_confluence_document_link]
+        ```
+    *   This provides immediate visual confirmation of the generated report.

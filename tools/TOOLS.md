@@ -358,7 +358,221 @@ python3 tools/gmail_tool.py search-emails --senders "ryan.williams@superdry.com"
 python3 tools/gmail_tool.py search-emails --subject "WSR,status report" --start-date 2025-12-15 --max-results 20
 ```
 
-### 5. WSR Tool (`tools/wsr_tool.py`)
+### 5. Bitbucket Tool (`tools/bitbucket_tool.py`)
+
+**Purpose:** Interact with Bitbucket Cloud to browse repositories, pull requests, code, and commits.
+
+#### Commands
+
+##### `list-workspaces`
+Lists all accessible Bitbucket workspaces.
+
+```bash
+python3 tools/bitbucket_tool.py list-workspaces
+```
+
+**Returns:** List of workspace names and slugs
+
+**Best Practice:** Use this first to discover available workspaces if you're unsure of the workspace slug.
+
+---
+
+##### `list-projects`
+Lists all projects in a workspace.
+
+```bash
+python3 tools/bitbucket_tool.py list-projects <workspace>
+```
+
+**Parameters:**
+- `workspace` (required): Workspace slug (e.g., "daemonsolutions")
+
+**Returns:** List of project names and keys
+
+**Best Practice:** Use the project key from this list to filter repositories.
+
+---
+
+##### `list-repositories`
+Lists repositories in a workspace, optionally filtered by project.
+
+```bash
+python3 tools/bitbucket_tool.py list-repositories <workspace> [--project-key <key>]
+```
+
+**Parameters:**
+- `workspace` (required): Workspace slug
+- `--project-key` (optional): Filter by project key (e.g., "SUP")
+
+**Returns:** List of repository names, slugs, and associated projects
+
+**Example:**
+```bash
+# List all repositories in workspace
+python3 tools/bitbucket_tool.py list-repositories daemonsolutions
+
+# List repositories in specific project
+python3 tools/bitbucket_tool.py list-repositories daemonsolutions --project-key SUP
+```
+
+---
+
+##### `get-repository`
+Gets detailed information about a specific repository.
+
+```bash
+python3 tools/bitbucket_tool.py get-repository <workspace> <repo_slug>
+```
+
+**Parameters:**
+- `workspace` (required): Workspace slug
+- `repo_slug` (required): Repository slug
+
+**Returns:** Repository details including description, project, main branch, size, language, and URLs
+
+**Best Practice:** Use this to understand repository structure before browsing code or PRs.
+
+---
+
+##### `list-pull-requests`
+Lists pull requests for a repository.
+
+```bash
+python3 tools/bitbucket_tool.py list-pull-requests <workspace> <repo_slug> [--state <state>] [--limit <n>]
+```
+
+**Parameters:**
+- `workspace` (required): Workspace slug
+- `repo_slug` (required): Repository slug
+- `--state` (optional, default: "OPEN"): PR state (OPEN, MERGED, DECLINED, SUPERSEDED)
+- `--limit` (optional, default: 10): Maximum results
+
+**Returns:** List of PRs with ID, title, author, creation date, state, and URL
+
+**Example:**
+```bash
+# List open PRs
+python3 tools/bitbucket_tool.py list-pull-requests daemonsolutions audit --state OPEN --limit 20
+
+# List recently merged PRs
+python3 tools/bitbucket_tool.py list-pull-requests daemonsolutions audit --state MERGED --limit 10
+```
+
+---
+
+##### `get-pull-request`
+Gets detailed information about a specific pull request.
+
+```bash
+python3 tools/bitbucket_tool.py get-pull-request <workspace> <repo_slug> <pr_id>
+```
+
+**Parameters:**
+- `workspace` (required): Workspace slug
+- `repo_slug` (required): Repository slug
+- `pr_id` (required): Pull request ID number
+
+**Returns:** Full PR details including title, description, author, state, branches, reviewers, and participants
+
+**Best Practice:** Use this to get full context about PRs mentioned in Slack or email.
+
+---
+
+##### `get-latest-pull-request`
+Gets the most recent pull request from a repository.
+
+```bash
+python3 tools/bitbucket_tool.py get-latest-pull-request <workspace> <repo_slug> [--state <state>]
+```
+
+**Parameters:**
+- `workspace` (required): Workspace slug
+- `repo_slug` (required): Repository slug
+- `--state` (optional, default: "OPEN"): PR state to filter by
+
+**Returns:** Full details of the latest PR
+
+**Best Practice:** Use this when users ask "what was the last pull request about?"
+
+**Example:**
+```bash
+# Get latest open PR
+python3 tools/bitbucket_tool.py get-latest-pull-request daemonsolutions audit
+
+# Get latest merged PR
+python3 tools/bitbucket_tool.py get-latest-pull-request daemonsolutions audit --state MERGED
+```
+
+---
+
+##### `list-branches`
+Lists branches in a repository.
+
+```bash
+python3 tools/bitbucket_tool.py list-branches <workspace> <repo_slug> [--limit <n>]
+```
+
+**Parameters:**
+- `workspace` (required): Workspace slug
+- `repo_slug` (required): Repository slug
+- `--limit` (optional, default: 10): Maximum results
+
+**Returns:** List of branches with last commit hash, author, and date
+
+---
+
+##### `get-commits`
+Gets recent commits from a repository.
+
+```bash
+python3 tools/bitbucket_tool.py get-commits <workspace> <repo_slug> [--branch <name>] [--limit <n>]
+```
+
+**Parameters:**
+- `workspace` (required): Workspace slug
+- `repo_slug` (required): Repository slug
+- `--branch` (optional): Branch name (defaults to main branch)
+- `--limit` (optional, default: 10): Maximum results
+
+**Returns:** List of commits with hash, author, date, and message
+
+**Best Practice:** Use this to understand recent development activity.
+
+**Example:**
+```bash
+# Get recent commits from main branch
+python3 tools/bitbucket_tool.py get-commits daemonsolutions audit --limit 20
+
+# Get commits from specific branch
+python3 tools/bitbucket_tool.py get-commits daemonsolutions audit --branch develop --limit 15
+```
+
+---
+
+##### `search-code`
+Searches for code in repositories.
+
+```bash
+python3 tools/bitbucket_tool.py search-code <workspace> <query> [--repo-slug <slug>]
+```
+
+**Parameters:**
+- `workspace` (required): Workspace slug
+- `query` (required): Text to search for
+- `--repo-slug` (optional): Limit search to specific repository
+
+**Returns:** List of file paths and matching code snippets
+
+**Limitations:**
+- Code search may not be available on all Bitbucket plans
+- Search is limited to text files
+- Results are paginated (max 20 results)
+
+**Best Practice:** Use specific search terms to narrow results. Code search works best for finding function names, configuration keys, or unique identifiers.
+
+---
+
+### 6. WSR Tool (`tools/wsr_tool.py`)
 
 **Purpose:** Generate and create Weekly Status Reports (WSRs) in Confluence using a local template.
 
@@ -459,6 +673,9 @@ If a tool command fails:
 | Slack get-channel-summary | Channel activity | 200 msg limit | Increase --limit for busy channels |
 | Slack search-messages | Project channel search | Configured channels only | Use specific keywords; prefer get-channel-summary |
 | Gmail search-emails | Email analysis | Fetches all by default | Always use --max-results |
+| Bitbucket list-pull-requests | PR overview | Default 10 results | Use --state MERGED to see recent merges |
+| Bitbucket get-latest-pull-request | Find latest PR | Single result only | Most efficient for "what's the latest PR?" |
+| Bitbucket get-commits | Development activity | Default 10 commits | Increase --limit for detailed history |
 
 ---
 
@@ -481,3 +698,12 @@ If a tool command fails:
 
 **User asks about team communications:**
 → Use Slack `get-channel-summary` for known channels, or `search-messages` for specific topics
+
+**User asks "what was the last pull request about?":**
+→ Use Bitbucket `get-latest-pull-request` with workspace and repo from config
+
+**User asks about pull requests or code changes:**
+→ Use Bitbucket `list-pull-requests` for overview, or `get-pull-request` for specific PRs
+
+**User asks about recent development activity:**
+→ Use Bitbucket `get-commits` to see recent commits and changes

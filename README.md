@@ -1,6 +1,6 @@
 # Engagement Agent
 
-A proactive AI assistant for consultants working on client engagements. Seamlessly integrates with Jira, Confluence, Slack, and Gmail to help you track project health, identify blockers, and generate weekly status reports.
+A proactive AI assistant for consultants working on client engagements. Seamlessly integrates with Jira, Confluence, Slack, Gmail, and Bitbucket to help you track project health, identify blockers, and generate weekly status reports.
 
 ## Features
 
@@ -8,6 +8,7 @@ A proactive AI assistant for consultants working on client engagements. Seamless
 - **Confluence Knowledge Management**: Search documentation, fetch meeting notes, generate Weekly Status Reports
 - **Slack Monitoring**: Summarize channel activity, extract key decisions and action items
 - **Gmail Analysis**: Search and summarize project-related emails
+- **Bitbucket Integration**: Browse repositories, view pull requests, track commits, search code
 - **AWS Environment Queries**: Read-only access to query AWS resources across multiple accounts
 - **AWS Security Analysis (Skill)**: Advanced security auditing with CloudTrail Lake, Security Hub, GuardDuty, IAM Access Analyzer, and AWS Config
 - **Intelligent Synthesis**: Connects the dots between platforms to provide actionable insights
@@ -80,6 +81,15 @@ Search SDRY space for "architecture" documentation
 **Test Slack:**
 ```
 Summarize the client channel from the last 3 days
+```
+
+**Test Bitbucket:**
+```
+List repositories in the SUP project
+```
+or
+```
+What was the last pull request about?
 ```
 
 **Test Gmail:**
@@ -179,6 +189,13 @@ Your settings are stored in `engagement_agent_config.json`:
     "email": "your-email@example.com",
     "api_token": "..."
   },
+  "bitbucket": {
+    "note": "Optional - uses Confluence credentials by default",
+    "url": "https://api.bitbucket.org",
+    "email": "your-email@example.com",
+    "api_token": "...",
+    "cloud": true
+  },
   "aws_security": {
     "delegated_admin_profile": "audit",
     "management_account_profile": "management",
@@ -189,7 +206,10 @@ Your settings are stored in `engagement_agent_config.json`:
     "project_name": "Your Project",
     "jira_project_key": "PROJ",
     "confluence_space_key": ["SPACE1", "SPACE2"],
+    "bitbucket_workspace": "your-workspace-slug",
+    "bitbucket_project_key": "SUP",
     "slack_channel_ids": ["C01234567"],
+    "pull_request_channel": "G01C28YBXQT",
     "recipient_emails_to_scan": ["colleague@example.com"],
     "stakeholder_emails": ["stakeholder@client.com"],
     "cloud_environments": ["AWS"],
@@ -205,6 +225,7 @@ Your settings are stored in `engagement_agent_config.json`:
   - `confluence_tool.py` - Confluence API client
   - `slack_tool.py` - Slack API client
   - `gmail_tool.py` - Gmail API client
+  - `bitbucket_tool.py` - Bitbucket API client
   - `wsr_tool.py` - Weekly Status Report generator
   - `requirements.txt` - Python dependencies
 
@@ -212,12 +233,12 @@ Your settings are stored in `engagement_agent_config.json`:
   - `wsr_full_template.html` - WSR template (auto-generated)
 
 - **Documentation**:
-  - `AGENTS.md` - AI agent system prompt and guiding principles
-  - `tools/AGENTS.md` - Detailed tool usage documentation
+  - `INSTRUCTIONS.md` - AI agent system prompt and guiding principles
+  - `tools/TOOLS.md` - Detailed tool usage documentation
 
 ## System Prompt Efficiency
 
-The `AGENTS.md` system prompt is designed to be comprehensive yet efficient:
+The `INSTRUCTIONS.md` system prompt is designed to be comprehensive yet efficient:
 
 **Token Usage:**
 - **Size**: 9,979 characters / 1,352 words
@@ -301,7 +322,7 @@ Check your `~/.aws/config` file for the profile name and update `engagement_agen
 
 - **Issues & Feedback**: Report at [github.com/sst/opencode](https://github.com/sst/opencode)
 - **OpenCode Docs**: [opencode.ai/docs](https://opencode.ai/docs)
-- **Tool Documentation**: See `tools/AGENTS.md` for detailed usage
+- **Tool Documentation**: See `tools/TOOLS.md` for detailed usage
 
 ## Example Workflow
 
@@ -313,34 +334,28 @@ Check your `~/.aws/config` file for the profile name and update `engagement_agen
    > /models
    (Select Claude 3.5 Sonnet)
 
-3. Prime the AI with context:
-   > @AGENTS.md
-   (This loads the Engagement Agent instructions - do this every time!)
-
-4. Onboard:
+3. Onboard:
    > /onboard-me
    (Follow setup wizard)
 
-5. Validate:
+4. Validate:
    > Show me tickets updated this week
    > Summarize the client Slack channel
 
-6. Generate WSR:
+5. Generate WSR:
    > /generate-wsr
    
-7. Ask questions:
+6. Ask questions:
    > What are the key blockers right now?
    > Find emails about the deployment timeline
    > Who is Chris Browne?
    > What is the CIDR range of the windcheater-prod VPC?
 
-8. AWS Security Analysis:
+7. AWS Security Analysis:
    > Who was the last person to login to laguna-prod?
    > Show me failed authentication attempts in the last 24 hours
    > What are our critical Security Hub findings?
 ```
-
-**Pro Tip:** Always reference `@AGENTS.md` when starting a new OpenCode session or switching models. This ensures the AI understands its role as an Engagement Agent and how to use the available tools.
 
 ## License
 

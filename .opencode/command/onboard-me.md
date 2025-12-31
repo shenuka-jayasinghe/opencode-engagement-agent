@@ -27,6 +27,7 @@ Guide me through setting up the necessary credentials to run the Engagement Agen
 **Step 3: Interactive Credential Onboarding**
 - Read the configuration file and check for missing credentials for the following services:
   - **Atlassian (Jira & Confluence)**: Check for `atlassian_email`, `atlassian_api_token`, `atlassian_domain`, `confluence_space_keys`, `jira_project_keys`
+  - **Bitbucket**: Check for `bitbucket_email`, `bitbucket_api_token`, `bitbucket_workspace`, `bitbucket_project_key`
   - **Slack**: Check for `slack_bot_token`, `slack_channel_ids`
   - **Google (Gmail)**: Check for `gmail_credentials_path`, `recipient_emails_to_scan`
 
@@ -108,6 +109,33 @@ The manifest includes these scopes:
 - `search:read.public` - Search content in public channels
 - `search:read.users` - Search workspace users
 
+**Bitbucket Setup Instructions:**
+When setting up Bitbucket, guide the user through these steps:
+1. Go to https://id.atlassian.com/manage-profile/security/api-tokens
+2. Click "Create API token with scopes"
+3. **IMPORTANT:** This is a DIFFERENT token than Jira/Confluence - Bitbucket requires its own scoped API token
+4. Configure the token:
+   - **Token name**: "Engagement Agent - Bitbucket" (or similar descriptive name)
+   - **Expiry**: Choose appropriate expiration (recommend 1 year or No expiration for production use)
+   - **Scope: Actions**: Select "Read" and then check ALL the read-only actions:
+     - Account: Read
+     - Workspace membership: Read
+     - Projects: Read
+     - Repositories: Read
+     - Pull requests: Read
+     - Issues: Read
+     - Wikis: Read
+     - Snippets: Read
+     - Webhooks: Read
+     - Pipelines: Read
+     - Runners: Read
+5. Click "Create" and copy the generated token (you won't see it again!)
+6. When prompted, provide:
+   - Your Atlassian email address (same as Jira/Confluence)
+   - The Bitbucket API token you just created
+   - Your Bitbucket workspace slug (visible in URLs like `bitbucket.org/YOUR-WORKSPACE/...`)
+   - The project key(s) for your project(s) (e.g., "SUP" for Superdry project)
+
 **Step 3: Statefulness**
 - If I stop and restart this command at any time, automatically detect which credentials are still missing and pick up exactly where we left off.
 
@@ -146,9 +174,10 @@ The manifest includes these scopes:
 - After all credentials are filled in, verify the configuration is valid by attempting to read it.
 - Test each tool using the configured virtual environment:
   1. Jira: `source <venv_path>/bin/activate && python3 tools/jira_tool.py get-summary --project-key <KEY> --days 7`
-  2. Confluence: `source <venv_path>/bin/activate && python3 tools/confluence_tool.py search --space-key <KEY> --query "test" --limit 1`
-  3. Slack: `source <venv_path>/bin/activate && python3 tools/slack_tool.py list-channels`
-  4. Gmail: `source <venv_path>/bin/activate && python3 tools/gmail_tool.py search-emails --max-results 1`
+  2. Confluence: `source <venv_path>/bin/activate && python3 tools/confluence_tool.py search <SPACE_KEY> "test" --limit 1`
+  3. Bitbucket: `source <venv_path>/bin/activate && python3 tools/bitbucket_tool.py list-workspaces`
+  4. Slack: `source <venv_path>/bin/activate && python3 tools/slack_tool.py get-channel-summary <CHANNEL_ID> <START_DATE> <END_DATE> --limit 10`
+  5. Gmail: `source <venv_path>/bin/activate && python3 tools/gmail_tool.py search-emails --max-results 1`
 - Display a summary of the configured services.
 
 Begin the onboarding process now.
