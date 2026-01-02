@@ -438,25 +438,25 @@ Your settings are stored in `engagement_agent_config.json`:
 The `INSTRUCTIONS.md` system prompt is designed to be comprehensive yet efficient:
 
 **Token Usage:**
-- **Size**: ~16,500 characters / ~2,400 words
-- **Estimated tokens**: ~4,100 tokens
-- **Context budget**: 2.0% of typical 200K token limit
-- **Leaves available**: ~195,900 tokens for conversation and tool outputs
+- **Size**: ~6,000 characters / ~737 words
+- **Estimated tokens**: ~1,500 tokens
+- **Context budget**: 0.75% of typical 200K token limit
+- **Leaves available**: ~198,500 tokens for conversation and tool outputs
 
 **Why this matters:**
-- ✅ Small overhead allows for longer conversations
-- ✅ Plenty of room for large tool outputs (CloudTrail queries, Confluence pages, Jira summaries)
-- ✅ Multi-turn conversations without context pressure
+- ✅ Minimal overhead allows for longer conversations
+- ✅ Maximum room for large tool outputs (CloudTrail queries, Confluence pages, Jira summaries)
+- ✅ Extended multi-turn conversations without context pressure
 - ✅ Skill system keeps specialized knowledge out of base prompt
 
 **Comparison:**
-- Base prompt: ~4,100 tokens (2.0%)
-- With 10-turn conversation: ~15,000-25,000 tokens (7-12%)
+- Base prompt: ~1,500 tokens (0.75%)
+- With 10-turn conversation: ~12,000-22,000 tokens (6-11%)
 - Typical session: 50,000-100,000 tokens (25-50%)
 
-The system prompt is designed to be detailed enough for consistent behavior while remaining token-efficient. The skill system (`.opencode/skill/*.md`) allows loading specialized knowledge on-demand without inflating the base prompt.
+The system prompt is highly optimized for token efficiency while retaining all critical functionality. The skill system (`.opencode/skill/*.md`) allows loading specialized knowledge on-demand without inflating the base prompt.
 
-**Last updated**: 2026-01-02 (~440 lines, ~4,100 tokens)
+**Last updated**: 2026-01-02 (~87 lines, ~1,500 tokens) - **63% reduction from previous version (4,100 → 1,500 tokens)**
 
 ## Requirements
 
