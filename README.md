@@ -12,6 +12,7 @@ A proactive AI assistant for consultants working on client engagements. Seamless
 - **AWS Environment Queries**: Read-only access to query AWS resources across multiple accounts
 - **AWS Security Analysis (Skill)**: Advanced security auditing with CloudTrail Lake, Security Hub, GuardDuty, IAM Access Analyzer, and AWS Config
 - **Intelligent Synthesis**: Connects the dots between platforms to provide actionable insights
+- **Usage Tracking**: Monitor AI API calls, token consumption, and costs across sessions
 
 ## Quick Start
 
@@ -422,10 +423,10 @@ Your settings are stored in `engagement_agent_config.json`:
 The `INSTRUCTIONS.md` system prompt is designed to be comprehensive yet efficient:
 
 **Token Usage:**
-- **Size**: 9,979 characters / 1,352 words
-- **Estimated tokens**: ~1,400 tokens
-- **Context budget**: 0.7% of typical 200K token limit
-- **Leaves available**: ~198,600 tokens for conversation and tool outputs
+- **Size**: ~16,500 characters / ~2,400 words
+- **Estimated tokens**: ~4,100 tokens
+- **Context budget**: 2.0% of typical 200K token limit
+- **Leaves available**: ~195,900 tokens for conversation and tool outputs
 
 **Why this matters:**
 - ✅ Small overhead allows for longer conversations
@@ -434,13 +435,13 @@ The `INSTRUCTIONS.md` system prompt is designed to be comprehensive yet efficien
 - ✅ Skill system keeps specialized knowledge out of base prompt
 
 **Comparison:**
-- Base prompt: ~1,400 tokens (0.7%)
-- With 10-turn conversation: ~10,000-20,000 tokens (5-10%)
+- Base prompt: ~4,100 tokens (2.0%)
+- With 10-turn conversation: ~15,000-25,000 tokens (7-12%)
 - Typical session: 50,000-100,000 tokens (25-50%)
 
 The system prompt is designed to be detailed enough for consistent behavior while remaining token-efficient. The skill system (`.opencode/skill/*.md`) allows loading specialized knowledge on-demand without inflating the base prompt.
 
-**Last updated**: 2025-12-23 (104 lines, ~1,400 tokens)
+**Last updated**: 2026-01-02 (~440 lines, ~4,100 tokens)
 
 ## Requirements
 
@@ -537,6 +538,104 @@ Check your `~/.aws/config` file for the profile name and update `engagement_agen
    > Show me failed authentication attempts in the last 24 hours
    > What are our critical Security Hub findings?
 ```
+
+## Usage Tracking & Monitoring
+
+Track AI API calls, token consumption, and costs to manage your budget and optimize usage.
+
+### Quick Start
+
+```bash
+# Start tracking a session
+./track begin "Working on feature X"
+
+# Your work happens here with OpenCode...
+
+# Manually log an API call (if needed)
+./track log google google/gemini-2.5-flash chat 5000 1500
+
+# View current session status
+./track status
+
+# End session and see summary
+./track finish
+
+# View usage statistics
+./track stats           # Last 7 days
+./track stats 30        # Last 30 days
+
+# List all sessions
+./track list
+```
+
+### What Gets Tracked
+
+- **API Calls**: Each call to Google, AWS Bedrock, or GitHub Copilot
+- **Token Usage**: Input and output tokens per call
+- **Costs**: Automatic calculation based on current pricing
+- **Session Metadata**: Duration, description, models used
+- **Sub-Agent Calls**: Tracks specialized agent invocations
+
+### Pricing (per 1M tokens)
+
+| Model | Input | Output | Best For |
+|-------|--------|---------|----------|
+| Gemini 2.5 Flash Lite | $0.0375 | $0.15 | Simple queries, fast responses |
+| Gemini 2.5 Flash | $0.075 | $0.30 | General purpose, balanced |
+| Gemini 2.5 Pro | $1.25 | $5.00 | Complex reasoning, high quality |
+| Claude Sonnet 4.5 (Bedrock) | $3.00 | $15.00 | AWS analysis, security audits |
+| Claude Haiku 4.5 (Bedrock) | $1.00 | $5.00 | Fast AWS queries |
+
+### Example Output
+
+```bash
+$ ./track stats 7
+
+=== Usage Statistics (Last 7 Days) ===
+
+Total Sessions: 15
+Total API Calls: 47
+Total Tokens: 234,500
+Total Cost: $23.45
+Unique Models: 3
+Unique Agents: 5
+
+=== Cost by Model ===
+  google/gemini-2.5-flash
+    Calls: 30
+    Tokens: 145,000
+    Cost: $18.23
+  
+  amazon-bedrock/anthropic.claude-sonnet-4-5
+    Calls: 12
+    Tokens: 68,000
+    Cost: $4.89
+  
+  google/gemini-2.5-flash-lite
+    Calls: 5
+    Tokens: 21,500
+    Cost: $0.33
+```
+
+### Database
+
+All data is stored in `usage_tracker.db` (SQLite). You can query it directly:
+
+```bash
+# View all sessions
+sqlite3 usage_tracker.db "SELECT * FROM sessions;"
+
+# Export to CSV
+sqlite3 -header -csv usage_tracker.db "SELECT * FROM api_calls;" > usage.csv
+```
+
+### Advanced Usage
+
+See [tools/USAGE_TRACKER.md](tools/USAGE_TRACKER.md) for:
+- Python API documentation
+- Database schema
+- Integration options
+- Future enhancements (dashboards, alerts, etc.)
 
 ## License
 

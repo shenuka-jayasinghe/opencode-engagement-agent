@@ -313,6 +313,127 @@ You only consider email and slack information relevant to the given time window 
 *   **Reference Configuration:** The `engagement_agent_config.json` file contains project defaults (space keys, project keys, channel IDs, email addresses). Always reference these when users don't specify. Key configuration options include:
     *   `pull_request_channel`: Optional Slack channel ID for monitoring pull request notifications and discussions.
 
+
+**Slide Window Command (/slide-window):**
+
+When this command is called with `/slide-window`, perform a "sliding window" operation that preserves context while starting fresh in a new session.
+
+**Purpose:**
+This command helps manage long conversations by:
+1. Summarizing the current session's key information
+2. Saving it to your personal knowledge base for future reference
+3. Starting a new session with the summary injected, allowing you to continue where you left off without the full conversation history
+
+**Configuration (Optional):**
+To enable auto-execution of session transitions, configure your session start command:
+
+*   **Method 1: Environment Variable**
+    `export OPENCODE_SESSION_CMD="unset AWS_VAULT && aws-vault exec daemon-ml -- opencode"`
+
+*   **Method 2: Config File**
+    Add to `engagement_agent_config.json`:
+    ```json
+    {
+      "opencode_session_command": "unset AWS_VAULT && aws-vault exec daemon-ml -- opencode"
+    }
+    ```
+
+*   **Without Configuration:**
+    If no session command is configured, the command will display the full bash command for you to copy and run manually.
+
+**Usage:**
+*   `/slide-window`
+*   `/slide-window "AWS Lambda Debugging Session"` (custom title)
+
+**Command Execution Steps:**
+
+1.  **Analyze Current Session:**
+    Analyze the entire current conversation and extract:
+    *   **Key decisions made:** Technical choices, architectural decisions, problem resolutions
+    *   **Important discoveries:** Bugs found, root causes identified, insights gained
+    *   **Action items:** TODOs, follow-up tasks, pending work
+    *   **Context needed for continuation:** Current state, what you're working on, next steps
+    *   **Technical details:** Code snippets, commands, configurations, file paths
+    *   **Learnings:** Best practices, gotchas, patterns to remember
+
+2.  **Generate Session Summary:**
+    Create a comprehensive summary structured as follows:
+
+    ```markdown
+    ## Session Overview
+    [1-2 sentence overview of what this session was about]
+
+    ## Key Decisions & Changes
+    - [Decision 1 with rationale]
+    - [Decision 2 with rationale]
+    - [Code/config changes made]
+
+    ## Important Discoveries
+    - [Discovery 1]
+    - [Discovery 2]
+    - [Root causes, bugs, insights]
+
+    ## Technical Details
+    - File paths: [relevant files worked on]
+    - Commands used: [important commands]
+    - Configuration: [key config changes]
+    - Code snippets: [critical code if needed]
+
+    ## Current State
+    - What's working: [completed items]
+    - What's pending: [unfinished work]
+    - Next steps: [what to do next]
+
+    ## Action Items
+    - [ ] [Action item 1]
+    - [ ] [Action item 2]
+    - [ ] [Action item 3]
+
+    ## Context for Continuation
+    [Any additional context needed to pick up where you left off - current problems, blockers, questions to investigate]
+    ```
+
+3.  **Determine Title:**
+    *   **If user provided a title in quotes:** Use the provided title
+    *   **If no title provided:** Generate a descriptive title based on the session content. Format: "[Technology/Component] - [Main Activity/Topic]". Show the generated title and ask for confirmation.
+
+4.  **Generate Tags:**
+    Auto-generate 3-7 relevant tags based on technologies, activities, domain, and project terms.
+    **Always include the tag:** `session-summary`
+
+5.  **Store to Knowledge Base:**
+    Use the `personal-knowledge_store_knowledge` tool with the summary, title, and tags.
+    Show confirmation with Entry ID and Tags.
+
+6.  **Create Continuation Context:**
+    Generate a concise handoff message for the new session:
+
+    ```
+    Continuing from previous session: [Title]
+
+    Quick context:
+    - Working on: [main focus]
+    - Current state: [what's done]
+    - Next steps: [what to do next]
+    - Blockers: [any issues or questions]
+
+    [Include 2-3 most critical technical details needed immediately]
+
+    Full session details saved to knowledge base (Entry #[id])
+    Search with: /search-knowledge [relevant terms]
+    ```
+
+7.  **Determine Session Start Command:**
+    Check `engagement_agent_config.json` for `opencode_session_command` or `$OPENCODE_SESSION_CMD`. Default to `opencode`.
+
+8.  **Execute Session Transition:**
+    *   **Option A: Auto-execute with Bash (Recommended):**
+        1. Format the continuation context as a single-line string (escape quotes)
+        2. Build the full command: `[session_start_command] "context..."`
+        3. Execute using Bash tool: Run `/exit` first to close current session, then execute the session start command in background.
+    *   **Option B: Display command to run manually:**
+        Show the formatted command to copy/paste if no session command is configured.
+
 **System Prompt Maintenance:**
 
 *   **CRITICAL:** When updating this INSTRUCTIONS.md file, you MUST update the system prompt efficiency metrics in README.md. Calculate the new token count and update the "System Prompt Efficiency" section to maintain transparency about context usage.

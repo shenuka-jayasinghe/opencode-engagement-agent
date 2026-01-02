@@ -1,0 +1,25 @@
+{
+  "name": "opencode-dashboard",
+  "version": "1.0.0",
+  "description": "Live OpenCode usage dashboard with cost and token analytics",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.22.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "opencode",
+    "dashboard",
+    "analytics",
+    "llm",
+    "cost-tracking"
+  ],
+  "author": "",
+  "license": "ISC"
+}

@@ -3,3 +3,5 @@ tools/templates/*
 *venv
 *pycache*
 *local_cache*
+*.claude*
+*node_modules*

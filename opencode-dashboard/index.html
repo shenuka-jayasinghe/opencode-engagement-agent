@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenCode Usage Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1a1a1a; }
+        ::-webkit-scrollbar-thumb { background: #404040; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #525252; }
+
+        /* Animations */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-in { animation: slideIn 0.3s ease-out; }
+
+        /* Card hover effect */
+        .card-hover {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'dark-bg': '#0A0A0A',
+                        'dark-surface': '#1A1A1A',
+                        'dark-border': '#27272A',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-dark-bg text-gray-100 font-sans antialiased">
+
+    <!-- Sidebar -->
+    <div class="fixed inset-y-0 left-0 w-64 bg-dark-surface border-r border-dark-border z-50">
+        <div class="flex flex-col h-full">
+            <!-- Logo -->
+            <div class="px-6 py-5 border-b border-dark-border">
+                <h1 class="text-xl font-bold text-white">OpenCode Dashboard</h1>
+                <p class="text-sm text-gray-400 mt-1">Usage & Cost Analytics</p>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+                <a href="#" data-page="overview" onclick="showPage('overview'); return false;" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-white bg-blue-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                    <span class="font-medium">Overview</span>
+                </a>
+
+                <a href="#" data-page="sessions" onclick="showPage('sessions'); return false;" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-dark-bg transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>
+                    <span class="font-medium">Sessions</span>
+                </a>
+
+                <a href="#" data-page="models" onclick="showPage('models'); return false;" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-dark-bg transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    <span class="font-medium">Models</span>
+                </a>
+
+                <a href="#" data-page="providers" onclick="showPage('providers'); return false;" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-dark-bg transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path>
+                    </svg>
+                    <span class="font-medium">Providers</span>
+                </a>
+
+                <a href="#" data-page="tools" onclick="showPage('tools'); return false;" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-dark-bg transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    <span class="font-medium">Tools</span>
+                </a>
+
+                <a href="#" data-page="optimization" onclick="showPage('optimization'); return false;" class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-dark-bg transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    <span class="font-medium">Optimization</span>
+                </a>
+            </nav>
+
+            <!-- Footer -->
+            <div class="px-6 py-4 border-t border-dark-border">
+                <button onclick="showPage('settings'); return false;" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-dark-bg transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    <span class="font-medium">Settings</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="ml-64">
+        <!-- Header -->
+        <header class="sticky top-0 z-40 bg-dark-surface/80 backdrop-blur-sm border-b border-dark-border">
+            <div class="px-8 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <h2 id="page-title" class="text-2xl font-bold text-white">Overview</h2>
+                    <select id="dateRangeSelect" class="px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-sm text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="7">Last 7 Days</option>
+                        <option value="14">Last 14 Days</option>
+                        <option value="30">Last 30 Days</option>
+                        <option value="60">Last 60 Days</option>
+                        <option value="90">Last 90 Days</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <button onclick="window.location.reload()" class="p-2 hover:bg-dark-bg rounded-lg transition">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Content -->
+        <div class="px-8 py-6" id="content-container">
+            <!-- Content will be dynamically loaded here by dashboard.js -->
+            <div class="flex items-center justify-center h-screen">
+                <div class="text-center">
+                    <p class="text-gray-400">Loading dashboard...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load dashboard script -->
+    <script src="dashboard.js"></script>
+    <script>
+        // Get current date range from URL or default
+        const urlParams = new URLSearchParams(window.location.search);
+        let currentDays = urlParams.get('days') || '7';
+
+        // Fetch live data from API on page load
+        async function loadDashboardData(days = currentDays) {
+            try {
+                const response = await fetch(`/api/data?days=${days}`);
+                if (!response.ok) throw new Error('Failed to fetch data');
+                window.opencodeData = await response.json();
+                currentDays = days;
+
+                // Trigger DOMContentLoaded if not already fired
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', () => {
+                        const event = new Event('dataLoaded');
+                        document.dispatchEvent(event);
+                    });
+                } else {
+                    const event = new Event('dataLoaded');
+                    document.dispatchEvent(event);
+                }
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                document.getElementById('content-container').innerHTML = `
+                    <div class="flex items-center justify-center h-screen">
+                        <div class="text-center">
+                            <h2 class="text-2xl font-bold text-white mb-4">Error Loading Data</h2>
+                            <p class="text-gray-400 mb-4">${error.message}</p>
+                            <button onclick="window.location.reload()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+                                Retry
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Set initial date range selector value
+        document.addEventListener('DOMContentLoaded', () => {
+            const selector = document.getElementById('dateRangeSelect');
+            if (selector) {
+                selector.value = currentDays;
+                selector.addEventListener('change', (e) => {
+                    const days = e.target.value;
+                    // Update URL
+                    const newUrl = new URL(window.location);
+                    newUrl.searchParams.set('days', days);
+                    window.history.pushState({}, '', newUrl);
+                    // Reload data
+                    loadDashboardData(days);
+                });
+            }
+        });
+
+        loadDashboardData();
+    </script>
+</body>
+</html>

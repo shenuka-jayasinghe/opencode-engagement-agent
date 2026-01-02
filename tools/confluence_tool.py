@@ -76,6 +76,18 @@ def create_confluence_page(client, space_key, title, content, parent_id=None):
     )
     return result
 
+def update_confluence_page(client, page_id, title, content):
+    """Updates an existing Confluence page."""
+    result = client.update_page(
+        page_id=page_id,
+        title=title,
+        body=content,
+        type='page',
+        representation='storage',
+        minor_edit=True
+    )
+    return result
+
 def search_confluence(client, space_key, query, limit=10, start=0, include_labels=None, modified_after=None, title_only=False):
     """Searches for a query in a specific Confluence space with advanced filters.
 
@@ -126,6 +138,12 @@ if __name__ == '__main__':
     create_page_parser.add_argument('--content', type=str, required=True)
     create_page_parser.add_argument('--parent-id', type=str)
 
+    # update-page command
+    update_page_parser = subparsers.add_parser('update-page')
+    update_page_parser.add_argument('--page-id', type=str, required=True)
+    update_page_parser.add_argument('--title', type=str, required=True)
+    update_page_parser.add_argument('--content', type=str, required=True)
+
     # search command
     search_parser = subparsers.add_parser('search')
     search_parser.add_argument('space_key', type=str)
@@ -146,6 +164,8 @@ if __name__ == '__main__':
         print(json.dumps(info))
     elif args.command == 'create-page':
         create_confluence_page(client, args.space_key, args.title, args.content, args.parent_id)
+    elif args.command == 'update-page':
+        update_confluence_page(client, args.page_id, args.title, args.content)
     elif args.command == 'search':
         results = search_confluence(
             client,
