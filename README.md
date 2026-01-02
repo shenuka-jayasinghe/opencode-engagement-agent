@@ -6,6 +6,7 @@ A proactive AI assistant for consultants working on client engagements. Seamless
 
 ![Uploading engagement-agent.png…]()
 
+![engagement-agent-svg](https://github.com/user-attachments/assets/955f2911-e623-49c2-8a2a-d9cc9c3fdb26)
 
 ## Features
 
