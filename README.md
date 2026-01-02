@@ -18,6 +18,12 @@ A proactive AI assistant for consultants working on client engagements. Seamless
 - **Intelligent Synthesis**: Connects the dots between platforms to provide actionable insights
 - **Usage Tracking**: Monitor AI API calls, token consumption, and costs across sessions
 
+
+## Cost Monitoring Dashboard
+
+<img width="3362" height="1996" alt="image" src="https://github.com/user-attachments/assets/b25d5f55-c234-4dc4-ad69-ba5fd313ff1c" />
+
+
 ## Quick Start
 
 ### 1. Install OpenCode
