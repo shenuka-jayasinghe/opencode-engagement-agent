@@ -196,7 +196,7 @@ See `.opencode/skill/aws-security.md` for detailed documentation.
 
 ## Personal Knowledge Management
 
-The Engagement Agent automatically builds a **personal knowledge vector database** from your conversations. This creates a searchable memory of technical patterns, configurations, and solutions specific to your projects.
+The Engagement Agent automatically builds a [**personal knowledge vector database**](https://github.com/NocturnLabs/opencode-personal-knowledge) from your conversations. This creates a searchable memory of technical patterns, configurations, and solutions specific to your projects.
 
 ### How It Works
 
