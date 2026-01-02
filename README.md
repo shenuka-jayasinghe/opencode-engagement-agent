@@ -23,6 +23,11 @@ A proactive AI assistant for consultants working on client engagements. Seamless
 
 <img width="3362" height="1996" alt="image" src="https://github.com/user-attachments/assets/b25d5f55-c234-4dc4-ad69-ba5fd313ff1c" />
 
+```
+cd ./opencode-dashboard
+npm start
+```
+
 
 ## Quick Start
 
