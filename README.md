@@ -2,6 +2,11 @@
 
 A proactive AI assistant for consultants working on client engagements. Seamlessly integrates with Jira, Confluence, Slack, Gmail, and Bitbucket to help you track project health, identify blockers, and generate weekly status reports.
 
+## Architecture
+
+![Uploading engagement-agent.png…]()
+
+
 ## Features
 
 - **Jira Integration**: Track ticket progress, identify blockers, analyze sprint velocity
