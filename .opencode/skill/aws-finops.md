@@ -60,7 +60,7 @@ unset AWS_VAULT AWS_VAULT_SESSION_TOKEN_EXPIRATION AWS_SESSION_TOKEN AWS_SECRET_
 
 ### 6. Historical Savings (Confluence/Jira/Slack)
 ```bash
-cd /Users/shenuka/git/daemon/engagement-agent && source venv/bin/activate
+cd $PWD && source venv/bin/activate
 python3 tools/confluence_tool.py search SDRY "cost savings|$" --limit 20
 python3 tools/jira_tool.py get-summary --project-key SD --days 90 | grep -i "cost\|savings\|$"
 python3 tools/slack_tool.py search "cost savings|$" --count 50

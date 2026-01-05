@@ -22,7 +22,7 @@ Searches for emails using Gmail's search syntax with flexible filtering options.
 
 #### Usage Pattern:
 ```bash
-cd /Users/shenuka/git/daemon/engagement-agent && \
+cd $PWD && \
 source <venv_path>/bin/activate && \
 python3 tools/gmail_tool.py search-emails \
   [--subject <text>] \
@@ -192,7 +192,7 @@ If authentication fails, re-run the setup script.
 
 ### Execution Pattern:
 ```bash
-cd /Users/shenuka/git/daemon/engagement-agent && \
+cd $PWD && \
 source <venv_path>/bin/activate && \
 python3 tools/gmail_tool.py search-emails <args>
 ```

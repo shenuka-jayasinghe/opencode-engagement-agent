@@ -100,7 +100,7 @@ When this command is called, perform the following steps:
     *   Use the stable `tools/wsr_tool.py` script to generate the HTML and create the page in Confluence.
     *   **IMPORTANT:** Always activate the virtual environment first:
         ```bash
-        cd /Users/shenuka/git/daemon/engagement-agent && source venv/bin/activate && python3 tools/wsr_tool.py \
+        cd $PWD && source venv/bin/activate && python3 tools/wsr_tool.py \
           --space-key "SDRY" \
           --title "Weekly Status Report - YYYY-MM-DD" \
           --parent-id "123456789" \

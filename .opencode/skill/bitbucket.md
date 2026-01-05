@@ -24,7 +24,7 @@ Lists all accessible Bitbucket workspaces for the authenticated user.
 
 #### Usage Pattern:
 ```bash
-cd /Users/shenuka/git/daemon/engagement-agent && \
+cd $PWD && \
 source <venv_path>/bin/activate && \
 python3 tools/bitbucket_tool.py list-workspaces
 ```
@@ -48,7 +48,7 @@ Lists all projects within a workspace.
 
 #### Usage Pattern:
 ```bash
-cd /Users/shenuka/git/daemon/engagement-agent && \
+cd $PWD && \
 source <venv_path>/bin/activate && \
 python3 tools/bitbucket_tool.py list-projects <workspace>
 ```
@@ -77,7 +77,7 @@ Lists repositories in a workspace, optionally filtered by project.
 
 #### Usage Pattern:
 ```bash
-cd /Users/shenuka/git/daemon/engagement-agent && \
+cd $PWD && \
 source <venv_path>/bin/activate && \
 python3 tools/bitbucket_tool.py list-repositories <workspace> [--project-key <key>]
 ```
@@ -118,7 +118,7 @@ Gets detailed information about a specific repository.
 
 #### Usage Pattern:
 ```bash
-cd /Users/shenuka/git/daemon/engagement-agent && \
+cd $PWD && \
 source <venv_path>/bin/activate && \
 python3 tools/bitbucket_tool.py get-repository <workspace> <repo_slug>
 ```
@@ -154,7 +154,7 @@ Lists pull requests for a repository, filtered by state.
 
 #### Usage Pattern:
 ```bash
-cd /Users/shenuka/git/daemon/engagement-agent && \
+cd $PWD && \
 source <venv_path>/bin/activate && \
 python3 tools/bitbucket_tool.py list-pull-requests <workspace> <repo_slug> \
   [--state <STATE>] \
@@ -209,7 +209,7 @@ Gets detailed information about a specific pull request.
 
 #### Usage Pattern:
 ```bash
-cd /Users/shenuka/git/daemon/engagement-agent && \
+cd $PWD && \
 source <venv_path>/bin/activate && \
 python3 tools/bitbucket_tool.py get-pull-request <workspace> <repo_slug> <pr_id>
 ```
@@ -258,7 +258,7 @@ Gets the most recent pull request from a repository. **This is the MOST EFFICIEN
 
 #### Usage Pattern:
 ```bash
-cd /Users/shenuka/git/daemon/engagement-agent && \
+cd $PWD && \
 source <venv_path>/bin/activate && \
 python3 tools/bitbucket_tool.py get-latest-pull-request <workspace> <repo_slug> \
   [--state <STATE>]
@@ -297,7 +297,7 @@ Gets recent commits from a repository.
 
 #### Usage Pattern:
 ```bash
-cd /Users/shenuka/git/daemon/engagement-agent && \
+cd $PWD && \
 source <venv_path>/bin/activate && \
 python3 tools/bitbucket_tool.py get-commits <workspace> <repo_slug> \
   [--branch <name>] \
@@ -349,7 +349,7 @@ Lists branches in a repository.
 
 #### Usage Pattern:
 ```bash
-cd /Users/shenuka/git/daemon/engagement-agent && \
+cd $PWD && \
 source <venv_path>/bin/activate && \
 python3 tools/bitbucket_tool.py list-branches <workspace> <repo_slug> \
   [--limit <n>]
@@ -388,7 +388,7 @@ Searches for code in repositories.
 
 #### Usage Pattern:
 ```bash
-cd /Users/shenuka/git/daemon/engagement-agent && \
+cd $PWD && \
 source <venv_path>/bin/activate && \
 python3 tools/bitbucket_tool.py search-code <workspace> <query> \
   [--repo-slug <slug>]
@@ -461,7 +461,7 @@ The tool automatically reads these values from `engagement_agent_config.json`:
 
 **Execution Pattern:**
 ```bash
-cd /Users/shenuka/git/daemon/engagement-agent && \
+cd $PWD && \
 source venv/bin/activate && \
 python3 tools/bitbucket_tool.py <command> <args>
 ```

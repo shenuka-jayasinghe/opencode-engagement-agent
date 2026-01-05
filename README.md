@@ -4,7 +4,7 @@ A proactive AI assistant for consultants working on client engagements. Seamless
 
 ## Architecture
 
-![architecture](./img/engagement-agent-svg-3.svg)
+![architecture](./img/opencode-engagement-agent-svg-3.svg)
 
 ## Features
 
@@ -26,6 +26,7 @@ A proactive AI assistant for consultants working on client engagements. Seamless
 ```
 cd ./opencode-dashboard
 npm start
+open 
 ```
 
 

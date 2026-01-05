@@ -22,7 +22,7 @@ Fetches the HTML content of a Confluence page by URL.
 
 #### Usage Pattern:
 ```bash
-cd /Users/shenuka/git/daemon/engagement-agent && \
+cd $PWD && \
 source <venv_path>/bin/activate && \
 python3 tools/confluence_tool.py get-page-content <url>
 ```
@@ -72,7 +72,7 @@ Fetches metadata about a Confluence page (parent ID, space key).
 
 #### Usage Pattern:
 ```bash
-cd /Users/shenuka/git/daemon/engagement-agent && \
+cd $PWD && \
 source <venv_path>/bin/activate && \
 python3 tools/confluence_tool.py get-page-info <url>
 ```
@@ -112,7 +112,7 @@ Creates a new Confluence page.
 
 #### Usage Pattern:
 ```bash
-cd /Users/shenuka/git/daemon/engagement-agent && \
+cd $PWD && \
 source <venv_path>/bin/activate && \
 python3 tools/confluence_tool.py create-page \
   --space-key <key> \
@@ -223,7 +223,7 @@ Searches for pages in a Confluence space using CQL (Confluence Query Language).
 
 #### Usage Pattern:
 ```bash
-cd /Users/shenuka/git/daemon/engagement-agent && \
+cd $PWD && \
 source <venv_path>/bin/activate && \
 python3 tools/confluence_tool.py search <space_key> <query> \
   [--limit <n>] \
@@ -356,7 +356,7 @@ The tool reads configuration from `engagement_agent_config.json`:
 
 ### Execution Pattern:
 ```bash
-cd /Users/shenuka/git/daemon/engagement-agent && \
+cd $PWD && \
 source <venv_path>/bin/activate && \
 python3 tools/confluence_tool.py <command>
 ```

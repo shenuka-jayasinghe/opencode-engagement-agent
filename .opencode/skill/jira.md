@@ -23,7 +23,7 @@ Provides a categorized summary of tickets grouped by status (New, In Progress, D
 
 #### Usage Pattern:
 ```bash
-cd /Users/shenuka/git/daemon/engagement-agent && \
+cd $PWD && \
 source <venv_path>/bin/activate && \
 python3 tools/jira_tool.py get-summary \
   [--project-key <key>] \
@@ -94,7 +94,7 @@ Fetches detailed information about a specific Jira ticket.
 
 #### Usage Pattern:
 ```bash
-cd /Users/shenuka/git/daemon/engagement-agent && \
+cd $PWD && \
 source <venv_path>/bin/activate && \
 python3 tools/jira_tool.py get-ticket <ticket_number>
 ```
@@ -137,7 +137,7 @@ Searches for tickets using JQL (Jira Query Language) for complex queries.
 
 #### Usage Pattern:
 ```bash
-cd /Users/shenuka/git/daemon/engagement-agent && \
+cd $PWD && \
 source <venv_path>/bin/activate && \
 python3 tools/jira_tool.py search-tickets "<jql_query>" \
   [--max-results <n>] \
@@ -239,7 +239,7 @@ Creates a new Jira ticket.
 
 #### Usage Pattern:
 ```bash
-cd /Users/shenuka/git/daemon/engagement-agent && \
+cd $PWD && \
 source <venv_path>/bin/activate && \
 python3 tools/jira_tool.py create-ticket \
   --project-key <key> \
@@ -318,7 +318,7 @@ The tool reads configuration from `engagement_agent_config.json`:
 
 ### Execution Pattern:
 ```bash
-cd /Users/shenuka/git/daemon/engagement-agent && \
+cd $PWD && \
 source <venv_path>/bin/activate && \
 python3 tools/jira_tool.py <command>
 ```

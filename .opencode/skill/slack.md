@@ -23,7 +23,7 @@ Fetches messages from a specific Slack channel within a date range.
 
 #### Usage Pattern:
 ```bash
-cd /Users/shenuka/git/daemon/engagement-agent && \
+cd $PWD && \
 source <venv_path>/bin/activate && \
 python3 tools/slack_tool.py get-channel-summary <channel_id> <start_date> <end_date> \
   [--limit <n>]
@@ -102,7 +102,7 @@ Searches for messages containing a query across project-specific channels config
 
 #### Usage Pattern:
 ```bash
-cd /Users/shenuka/git/daemon/engagement-agent && \
+cd $PWD && \
 source <venv_path>/bin/activate && \
 python3 tools/slack_tool.py search-messages <query> \
   [--count <n>]
@@ -213,7 +213,7 @@ The tool reads configuration from `engagement_agent_config.json`:
 
 ### Execution Pattern:
 ```bash
-cd /Users/shenuka/git/daemon/engagement-agent && \
+cd $PWD && \
 source <venv_path>/bin/activate && \
 python3 tools/slack_tool.py <command>
 ```
