@@ -29,11 +29,11 @@ Monitor emails/Slack for missing information, focusing on risks, costs, blockers
 |-------|-------|----------|--------------|------------|
 | `security-auditor` | Claude 4.5 | AWS security/compliance | CloudTrail, Security Hub, IAM, GuardDuty | `.opencode/skill/aws-security.md` |
 | `finops-advisor` | Claude 4.5 | AWS costs/billing/RI/SP | Cost Explorer, anomalies, rightsizing, forecasting | `.opencode/skill/aws-finops.md` |
-| `jira-agent` | Gemini 2.5 Flash | Jira tickets/sprints | Status summaries, JQL, ticket creation, blockers | `tools/jira_tool.py` |
-| `confluence-agent` | Gemini 2.5 Flash | Confluence docs/WSRs | CQL search, page CRUD, WSR generation | `tools/confluence_tool.py` |
-| `slack-agent` | Gemini 2.5 Flash | Slack messages/channels | Summaries, search, action items, PR monitoring | `tools/slack_tool.py` |
-| `gmail-agent` | Gemini 2.5 Flash | Emails/stakeholders | Search, filters, privacy-aware monitoring | `tools/gmail_tool.py` |
-| `bitbucket-agent` | Gemini 2.5 Flash | Multi-repo/complex PRs | Repos, PRs, commits, cross-refs (simple: direct tool) | `tools/bitbucket_tool.py` |
+| `jira-agent` | Gemini 2.5 Flash | Jira tickets/sprints | Status summaries, JQL, ticket creation (no updates), blockers | `tools/jira_tool.py` |
+| `confluence-agent` | Gemini 2.5 Flash | Confluence docs/WSRs | CQL search, page creation (no updates), WSR generation | `tools/confluence_tool.py` |
+| `slack-agent` | Gemini 2.5 Flash | Slack messages/channels | Read-only: summaries, search, action items, PR monitoring | `tools/slack_tool.py` |
+| `gmail-agent` | Gemini 2.5 Flash | Emails/stakeholders | Read-only: search, filters, privacy-aware monitoring | `tools/gmail_tool.py` |
+| `bitbucket-agent` | Gemini 2.5 Flash | Multi-repo/complex PRs | Read-only: repos, PRs, commits, cross-refs (simple: direct tool) | `tools/bitbucket_tool.py` |
 | `complex` | Claude 4.5 | Complex coding | - | - |
 | `simple` | Gemini 2.5 Flash Lite | Simple docs/explanations | - | - |
 
@@ -48,7 +48,7 @@ Monitor emails/Slack for missing information, focusing on risks, costs, blockers
 - **Bitbucket:** Direct for simple (1-2 repos), delegate for complex (3+ repos)
 
 **Principles:**
-- **Context:** Use `engagement_agent_config.json` for project defaults; re-confirm context when topic changes
+- **Context:** Use `config/engagement_agent_config.json` for project defaults; re-confirm context when topic changes
 - **Proactive:** Anticipate next questions, suggest related resources
 - **Synthesize:** Connect dots across platforms (Slack → Jira → Confluence)
 - **Clarity:** Use bullets, tables, human-readable names
@@ -60,11 +60,15 @@ Monitor emails/Slack for missing information, focusing on risks, costs, blockers
 
 **Tool Usage:**
 - **Docs:** See `tools/TOOLS.md` for full documentation
-- **Permissions:** Read operations execute immediately; writes need approval
+- **SECURITY:** All `tools/*.py` are READ-ONLY except for creating NEW documents:
+  - ✅ **Allowed:** Create new Confluence pages, create new Jira tickets
+  - ❌ **Prohibited:** Update/overwrite existing documents, send emails, send Slack messages, modify repositories
+  - This design prevents accidental data loss or unauthorized communications
+- **Permissions:** Read operations execute immediately; writes (new document creation only) need approval
 - **Clarify:** Ask for space, date range, result count when ambiguous
 - **Default limits:** Confluence (10), Jira (50, 7d), Slack summary (200), Slack search (20), Gmail (ALL)
 - **Filters:** `--start-date`/`--end-date` (YYYY-MM-DD), `--limit`, `--max-results`, `--title-only`, `--labels`
-- **Config:** Use `engagement_agent_config.json` for defaults (space keys, project keys, channel IDs, emails)
+- **Config:** Use `config/engagement_agent_config.json` for defaults (space keys, project keys, channel IDs, emails)
 
 
 **/slide-window Command:**
@@ -73,7 +77,7 @@ Summarizes session, stores to knowledge base, starts new session with context.
 **Usage:** `/slide-window` or `/slide-window "Custom Title"`
 
 **Config (optional):**
-- `engagement_agent_config.json`: `"opencode_session_command": "unset AWS_VAULT && aws-vault exec profile -- opencode"`
+- `config/engagement_agent_config.json`: `"opencode_session_command": "unset AWS_VAULT && aws-vault exec profile -- opencode"`
 - OR env var: `export OPENCODE_SESSION_CMD="..."`
 
 **Process:**

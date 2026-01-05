@@ -1,10 +1,10 @@
-# Engagement Agent
+# Opencode Engagement Agent
 
 A proactive AI assistant for consultants working on client engagements. Seamlessly integrates with Jira, Confluence, Slack, Gmail, and Bitbucket to help you track project health, identify blockers, and generate weekly status reports.
 
 ## Architecture
 
-![engagement-agent-3](https://github.com/user-attachments/assets/07954358-f861-4f5d-a254-4e8a5176c9ce)
+![architecture](./img/engagement-agent-svg-3.svg)
 
 ## Features
 
@@ -21,7 +21,7 @@ A proactive AI assistant for consultants working on client engagements. Seamless
 
 ## Cost Monitoring Dashboard
 
-<img width="3362" height="1996" alt="image" src="https://github.com/user-attachments/assets/b25d5f55-c234-4dc4-ad69-ba5fd313ff1c" />
+![cost-dashboard](./img/image.png)
 
 ```
 cd ./opencode-dashboard
@@ -43,7 +43,7 @@ brew install opencode
 opencode
 ```
 
-This opens OpenCode in the engagement-agent directory.
+This opens OpenCode in the opencode-engagement-agent directory.
 
 ### 3. Connect to AI Model & Prime with Context
 
@@ -311,7 +311,7 @@ List my knowledge entries tagged with "aws" and "debugging"
 - **Technology**: `aws`, `python`, `docker`, `kubernetes`, `typescript`
 - **Activity**: `debugging`, `optimization`, `deployment`, `migration`, `testing`
 - **Domain**: `security`, `performance`, `cost`, `networking`, `database`
-- **Project-specific**: Terms from your `engagement_agent_config.json`
+- **Project-specific**: Terms from your `config/engagement_agent_config.json`
 
 **Example entry structure:**
 ```
@@ -362,7 +362,7 @@ Agent: ✅ Ended session #12 (23 messages logged)
 
 ## Configuration
 
-Your settings are stored in `engagement_agent_config.json`:
+Your settings are stored in `config/engagement_agent_config.json`:
 
 ```json
 {
@@ -470,7 +470,7 @@ The system prompt is highly optimized for token efficiency while retaining all c
 
 ## Virtual Environment
 
-All Python tools use a virtual environment (configured in `engagement_agent_config.json`):
+All Python tools use a virtual environment (configured in `config/engagement_agent_config.json`):
 
 ```bash
 # Activate manually if needed
@@ -494,7 +494,7 @@ The agent automatically handles virtual environment activation when executing to
 
 ### Gmail Token Expired
 ```bash
-cd engagement-agent
+cd opencode-engagement-agent
 source venv/bin/activate
 python3 tools/gmail_tool.py search-emails --max-results 1
 ```
@@ -513,7 +513,7 @@ pip install -r tools/requirements.txt
 ```
 
 ### AWS Profile Not Found
-Check your `~/.aws/config` file for the profile name and update `engagement_agent_config.json` if needed.
+Check your `~/.aws/config` file for the profile name and update `config/engagement_agent_config.json` if needed.
 
 ## Support
 

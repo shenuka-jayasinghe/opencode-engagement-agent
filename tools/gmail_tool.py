@@ -9,7 +9,8 @@ from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-CONFIG_FILE = "engagement_agent_config.json"
+CONFIG_FILE = "config/engagement_agent_config.json"
+
 
 def get_config():
     """Loads configuration from the JSON file."""
@@ -21,6 +22,7 @@ def get_config():
             raise FileNotFoundError(f"Could not find {CONFIG_FILE}")
     with open(config_path, "r") as f:
         return json.load(f)
+
 
 config = get_config()
 G_SCOPES = config["google"]["scopes"]
@@ -39,7 +41,10 @@ class Email:
         self.attachments = attachments
 
     def __repr__(self):
-        return f"Email(id={self.id}, subject={self.subject}, sender={self.sender}, recipients={self.recipients}, attachments={len(self.attachments)})"
+        return (
+            f"Email(id={self.id}, subject={self.subject}, sender={self.sender}, "
+            f"recipients={self.recipients}, attachments={len(self.attachments)})"
+        )
 
 
 def get_gmail_service():
@@ -51,7 +56,7 @@ def get_gmail_service():
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
             # Save the credentials for the next run
-            with open(G_TOKEN_FILE, 'w') as token:
+            with open(G_TOKEN_FILE, "w") as token:
                 token.write(creds.to_json())
         else:
             raise RuntimeError(f"'{G_TOKEN_FILE}' not found or invalid. Please run setup_auth.py to authenticate.")
@@ -69,13 +74,24 @@ def parse_email_body(msg) -> Email:
 
     for h in headers:
         name = h["name"].lower()
-        if name == "subject": subject = h["value"]
-        elif name == "from": sender = h["value"]
-        elif name == "to": to_header = h["value"]
-        elif name == "cc": cc_header = h["value"]
+        if name == "subject":
+            subject = h["value"]
+        elif name == "from":
+            sender = h["value"]
+        elif name == "to":
+            to_header = h["value"]
+        elif name == "cc":
+            cc_header = h["value"]
 
     recipient_list = [r.strip() for r in f"{to_header},{cc_header}".split(",") if r.strip()]
-    email_data = {"id": msg["id"], "subject": subject, "body": "", "attachments": [], "recipients": recipient_list, "sender": sender}
+    email_data = {
+        "id": msg["id"],
+        "subject": subject,
+        "body": "",
+        "attachments": [],
+        "recipients": recipient_list,
+        "sender": sender,
+    }
 
     if "parts" in payload:
         for part in payload["parts"]:
@@ -88,18 +104,25 @@ def parse_email_body(msg) -> Email:
 
     return Email(**email_data)
 
-def create_query(subject: str = None, recipients: str = None, senders: str = None, start_date: str = None, end_date: str = None):
+
+def create_query(
+    subject: str = None, recipients: str = None, senders: str = None, start_date: str = None, end_date: str = None
+):
     query_parts = []
-    if subject: query_parts.append(f"subject:({subject})")
-    if recipients: query_parts.append(f"to:({recipients})")
-    if senders: query_parts.append(f"from:({senders})")
+    if subject:
+        query_parts.append(f"subject:({subject})")
+    if recipients:
+        query_parts.append(f"to:({recipients})")
+    if senders:
+        query_parts.append(f"from:({senders})")
     if start_date:
-        from_time = datetime.datetime.strptime(start_date, '%Y-%m-%d')
+        from_time = datetime.datetime.strptime(start_date, "%Y-%m-%d")
         query_parts.append(f"after:{from_time.strftime('%Y/%m/%d')}")
     if end_date:
-        to_time = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+        to_time = datetime.datetime.strptime(end_date, "%Y-%m-%d")
         query_parts.append(f"before:{to_time.strftime('%Y/%m/%d')}")
     return " ".join(query_parts)
+
 
 def search_emails(query: str, max_results: int = None) -> str:
     """Searches for emails matching the query.
@@ -122,7 +145,8 @@ def search_emails(query: str, max_results: int = None) -> str:
             if not page_token:
                 break
 
-        if not messages: return "No messages found."
+        if not messages:
+            return "No messages found."
 
         summaries = []
         for msg_summary in messages:
@@ -133,24 +157,25 @@ def search_emails(query: str, max_results: int = None) -> str:
     except HttpError as error:
         return f"An error occurred: {error}"
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Gmail Tool for searching emails.')
-    parser.add_argument('command', choices=['search-emails'])
-    parser.add_argument('--subject', type=str, help='Keywords to search in the subject.')
-    parser.add_argument('--recipients', type=str, help='Emails of recipients, comma-separated.')
-    parser.add_argument('--senders', type=str, help='Emails of senders, comma-separated.')
-    parser.add_argument('--start-date', type=str, help='Start date in YYYY-MM-DD format.')
-    parser.add_argument('--end-date', type=str, help='End date in YYYY-MM-DD format.')
-    parser.add_argument('--max-results', type=int, help='Maximum number of emails to return (default: all)')
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Gmail Tool for searching emails.")
+    parser.add_argument("command", choices=["search-emails"])
+    parser.add_argument("--subject", type=str, help="Keywords to search in the subject.")
+    parser.add_argument("--recipients", type=str, help="Emails of recipients, comma-separated.")
+    parser.add_argument("--senders", type=str, help="Emails of senders, comma-separated.")
+    parser.add_argument("--start-date", type=str, help="Start date in YYYY-MM-DD format.")
+    parser.add_argument("--end-date", type=str, help="End date in YYYY-MM-DD format.")
+    parser.add_argument("--max-results", type=int, help="Maximum number of emails to return (default: all)")
 
     args = parser.parse_args()
 
-    if args.command == 'search-emails':
+    if args.command == "search-emails":
         query = create_query(
             subject=args.subject,
             recipients=args.recipients,
             senders=args.senders,
             start_date=args.start_date,
-            end_date=args.end_date
+            end_date=args.end_date,
         )
         print(search_emails(query, max_results=args.max_results))

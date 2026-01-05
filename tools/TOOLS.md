@@ -2,19 +2,34 @@
 
 This document provides detailed information about available tools, their capabilities, limitations, and best practices for effective use.
 
+## **SECURITY: Read-Only Operations**
+
+**CRITICAL SAFETY GUARANTEE: All tools in this directory are READ-ONLY with the exception of creating NEW documents. NO tool can:**
+
+- ❌ **Overwrite or update existing documents** (Confluence pages, Jira tickets, etc.)
+- ❌ **Send emails** (Gmail tool is search-only)
+- ❌ **Send Slack messages** (Slack tool can only read messages)
+- ❌ **Modify code repositories** (Bitbucket tool is read-only)
+
+**The ONLY write operation permitted is creating NEW documents:**
+- ✅ Create new Confluence pages (cannot update existing ones)
+- ✅ Create new Jira tickets (cannot update existing ones)
+
+This design ensures the agent can gather information and generate new reports without risk of accidentally modifying or deleting existing data.
+
 ## **CRITICAL: Python Virtual Environment Requirement**
 
-**ALL Python tools in this directory MUST be executed using the virtual environment specified in `engagement_agent_config.json` under `python.venv_path`.**
+**ALL Python tools in this directory MUST be executed using the virtual environment specified in `config/engagement_agent_config.json` under `python.venv_path`.**
 
 ### Execution Pattern
 
 ```bash
-cd /path/to/engagement-agent && source <venv_path>/bin/activate && python3 tools/<tool_name>.py <args>
+cd /path/to/opencode-engagement-agent && source <venv_path>/bin/activate && python3 tools/<tool_name>.py <args>
 ```
 
 ### Example
 ```bash
-cd /Users/shenuka/git/daemon/gen-ai-examples/engagement-agent && source venv/bin/activate && python3 tools/jira_tool.py get-summary --project-key SD --days 7
+cd /Users/shenuka/git/daemon/gen-ai-examples/opencode-engagement-agent && source venv/bin/activate && python3 tools/jira_tool.py get-summary --project-key SD --days 7
 ```
 
 ### Why This Matters
@@ -25,7 +40,7 @@ cd /Users/shenuka/git/daemon/gen-ai-examples/engagement-agent && source venv/bin
 ### Quick Check
 To verify the virtual environment path:
 ```bash
-cat engagement_agent_config.json | grep -A 1 '"python"'
+cat config/engagement_agent_config.json | grep -A 1 '"python"'
 ```
 
 ---
@@ -36,7 +51,7 @@ cat engagement_agent_config.json | grep -A 1 '"python"'
 
 **Purpose:** Interact with Confluence spaces to fetch, search, and create documentation.
 
-**Note:** All commands shown below assume you're in the engagement-agent directory with the virtual environment activated. Prepend `cd /path/to/engagement-agent && source <venv_path>/bin/activate &&` before each command if not already activated.
+**Note:** All commands shown below assume you're in the opencode-engagement-agent directory with the virtual environment activated. Prepend `cd /path/to/opencode-engagement-agent && source <venv_path>/bin/activate &&` before each command if not already activated.
 
 #### Commands
 
@@ -92,7 +107,7 @@ python3 tools/confluence_tool.py create-page --space-key <key> --title <title> -
 **Limitations:**
 - Content must be valid Confluence storage format HTML
 - Title must be unique within the space
-- Cannot update existing pages (use Confluence API directly for updates)
+- **SECURITY: Cannot update or overwrite existing pages** - this tool can only create new pages
 
 **Best Practice:** Always fetch parent page info first if creating child pages.
 
@@ -245,11 +260,15 @@ python3 tools/jira_tool.py create-ticket --project-key <key> --summary <summary>
 
 **Returns:** Success message with created ticket key
 
+**Note:** This tool can create new tickets but **cannot update or modify existing tickets**.
+
 ---
 
 ### 3. Slack Tool (`tools/slack_tool.py`)
 
 **Purpose:** Fetch and search Slack messages from channels.
+
+**SECURITY: This tool is READ-ONLY. It cannot send messages, post to channels, or modify any Slack content.**
 
 #### Commands
 
@@ -320,6 +339,8 @@ python3 tools/slack_tool.py search-messages "deployment" --count 100
 
 **Purpose:** Search and fetch emails from Gmail.
 
+**SECURITY: This tool is READ-ONLY. It cannot send emails, reply to emails, or modify any email content.**
+
 #### Commands
 
 ##### `search-emails`
@@ -361,6 +382,8 @@ python3 tools/gmail_tool.py search-emails --subject "WSR,status report" --start-
 ### 5. Bitbucket Tool (`tools/bitbucket_tool.py`)
 
 **Purpose:** Interact with Bitbucket Cloud to browse repositories, pull requests, code, and commits.
+
+**SECURITY: This tool is READ-ONLY. It cannot create branches, merge pull requests, commit code, or modify any repository content.**
 
 #### Commands
 
@@ -608,7 +631,7 @@ When a user request is ambiguous, ALWAYS ask clarifying questions:
 
 ### 2. Using Configuration
 
-The `engagement_agent_config.json` file contains project-specific defaults:
+The `config/engagement_agent_config.json` file contains project-specific defaults:
 - `confluence_space_key`: Default Confluence spaces to search
 - `jira_project_key`: Default Jira project
 - `slack_channel_ids`: Monitored Slack channels
