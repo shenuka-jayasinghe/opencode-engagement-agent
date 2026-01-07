@@ -385,6 +385,8 @@ python3 tools/gmail_tool.py search-emails --subject "WSR,status report" --start-
 
 **SECURITY: This tool is READ-ONLY. It cannot create branches, merge pull requests, commit code, or modify any repository content.**
 
+**Configuration Defaults:** This tool uses `bitbucket_workspace` and `bitbucket_project_key` from `config/engagement_agent_config.json` as defaults. You can override these by providing explicit values.
+
 #### Commands
 
 ##### `list-workspaces`
@@ -404,15 +406,24 @@ python3 tools/bitbucket_tool.py list-workspaces
 Lists all projects in a workspace.
 
 ```bash
-python3 tools/bitbucket_tool.py list-projects <workspace>
+python3 tools/bitbucket_tool.py list-projects [workspace]
 ```
 
 **Parameters:**
-- `workspace` (required): Workspace slug (e.g., "daemonsolutions")
+- `workspace` (optional): Workspace slug (defaults to `bitbucket_workspace` from config)
 
 **Returns:** List of project names and keys
 
 **Best Practice:** Use the project key from this list to filter repositories.
+
+**Example:**
+```bash
+# Use default workspace from config
+python3 tools/bitbucket_tool.py list-projects
+
+# Specify a different workspace
+python3 tools/bitbucket_tool.py list-projects myworkspace
+```
 
 ---
 
@@ -420,22 +431,25 @@ python3 tools/bitbucket_tool.py list-projects <workspace>
 Lists repositories in a workspace, optionally filtered by project.
 
 ```bash
-python3 tools/bitbucket_tool.py list-repositories <workspace> [--project-key <key>]
+python3 tools/bitbucket_tool.py list-repositories [workspace] [--project-key <key>]
 ```
 
 **Parameters:**
-- `workspace` (required): Workspace slug
-- `--project-key` (optional): Filter by project key (e.g., "SUP")
+- `workspace` (optional): Workspace slug (defaults to config)
+- `--project-key` (optional): Filter by project key (defaults to config)
 
 **Returns:** List of repository names, slugs, and associated projects
 
 **Example:**
 ```bash
-# List all repositories in workspace
-python3 tools/bitbucket_tool.py list-repositories daemonsolutions
+# Use defaults from config (workspace + project)
+python3 tools/bitbucket_tool.py list-repositories
 
-# List repositories in specific project
-python3 tools/bitbucket_tool.py list-repositories daemonsolutions --project-key SUP
+# Use default workspace, specify different project
+python3 tools/bitbucket_tool.py list-repositories --project-key MYPROJ
+
+# Specify both workspace and project
+python3 tools/bitbucket_tool.py list-repositories myworkspace --project-key MYPROJ
 ```
 
 ---
@@ -444,16 +458,25 @@ python3 tools/bitbucket_tool.py list-repositories daemonsolutions --project-key 
 Gets detailed information about a specific repository.
 
 ```bash
-python3 tools/bitbucket_tool.py get-repository <workspace> <repo_slug>
+python3 tools/bitbucket_tool.py get-repository [workspace] <repo_slug>
 ```
 
 **Parameters:**
-- `workspace` (required): Workspace slug
+- `workspace` (optional): Workspace slug (defaults to config)
 - `repo_slug` (required): Repository slug
 
 **Returns:** Repository details including description, project, main branch, size, language, and URLs
 
 **Best Practice:** Use this to understand repository structure before browsing code or PRs.
+
+**Example:**
+```bash
+# Use default workspace from config
+python3 tools/bitbucket_tool.py get-repository laguna
+
+# Specify different workspace
+python3 tools/bitbucket_tool.py get-repository myworkspace laguna
+```
 
 ---
 
@@ -461,11 +484,11 @@ python3 tools/bitbucket_tool.py get-repository <workspace> <repo_slug>
 Lists pull requests for a repository.
 
 ```bash
-python3 tools/bitbucket_tool.py list-pull-requests <workspace> <repo_slug> [--state <state>] [--limit <n>]
+python3 tools/bitbucket_tool.py list-pull-requests [workspace] <repo_slug> [--state <state>] [--limit <n>]
 ```
 
 **Parameters:**
-- `workspace` (required): Workspace slug
+- `workspace` (optional): Workspace slug (defaults to config)
 - `repo_slug` (required): Repository slug
 - `--state` (optional, default: "OPEN"): PR state (OPEN, MERGED, DECLINED, SUPERSEDED)
 - `--limit` (optional, default: 10): Maximum results
@@ -474,11 +497,11 @@ python3 tools/bitbucket_tool.py list-pull-requests <workspace> <repo_slug> [--st
 
 **Example:**
 ```bash
-# List open PRs
-python3 tools/bitbucket_tool.py list-pull-requests daemonsolutions audit --state OPEN --limit 20
+# Use default workspace, list open PRs
+python3 tools/bitbucket_tool.py list-pull-requests laguna --state OPEN --limit 20
 
-# List recently merged PRs
-python3 tools/bitbucket_tool.py list-pull-requests daemonsolutions audit --state MERGED --limit 10
+# Specify workspace, list merged PRs
+python3 tools/bitbucket_tool.py list-pull-requests myworkspace laguna --state MERGED --limit 10
 ```
 
 ---
@@ -487,11 +510,11 @@ python3 tools/bitbucket_tool.py list-pull-requests daemonsolutions audit --state
 Gets detailed information about a specific pull request.
 
 ```bash
-python3 tools/bitbucket_tool.py get-pull-request <workspace> <repo_slug> <pr_id>
+python3 tools/bitbucket_tool.py get-pull-request [workspace] <repo_slug> <pr_id>
 ```
 
 **Parameters:**
-- `workspace` (required): Workspace slug
+- `workspace` (optional): Workspace slug (defaults to config)
 - `repo_slug` (required): Repository slug
 - `pr_id` (required): Pull request ID number
 
@@ -499,17 +522,26 @@ python3 tools/bitbucket_tool.py get-pull-request <workspace> <repo_slug> <pr_id>
 
 **Best Practice:** Use this to get full context about PRs mentioned in Slack or email.
 
+**Example:**
+```bash
+# Use default workspace
+python3 tools/bitbucket_tool.py get-pull-request laguna 123
+
+# Specify workspace
+python3 tools/bitbucket_tool.py get-pull-request myworkspace laguna 123
+```
+
 ---
 
 ##### `get-latest-pull-request`
 Gets the most recent pull request from a repository.
 
 ```bash
-python3 tools/bitbucket_tool.py get-latest-pull-request <workspace> <repo_slug> [--state <state>]
+python3 tools/bitbucket_tool.py get-latest-pull-request [workspace] <repo_slug> [--state <state>]
 ```
 
 **Parameters:**
-- `workspace` (required): Workspace slug
+- `workspace` (optional): Workspace slug (defaults to config)
 - `repo_slug` (required): Repository slug
 - `--state` (optional, default: "OPEN"): PR state to filter by
 
@@ -519,11 +551,11 @@ python3 tools/bitbucket_tool.py get-latest-pull-request <workspace> <repo_slug> 
 
 **Example:**
 ```bash
-# Get latest open PR
-python3 tools/bitbucket_tool.py get-latest-pull-request daemonsolutions audit
+# Use default workspace, get latest open PR
+python3 tools/bitbucket_tool.py get-latest-pull-request laguna
 
-# Get latest merged PR
-python3 tools/bitbucket_tool.py get-latest-pull-request daemonsolutions audit --state MERGED
+# Specify workspace, get latest merged PR
+python3 tools/bitbucket_tool.py get-latest-pull-request myworkspace laguna --state MERGED
 ```
 
 ---
@@ -532,15 +564,21 @@ python3 tools/bitbucket_tool.py get-latest-pull-request daemonsolutions audit --
 Lists branches in a repository.
 
 ```bash
-python3 tools/bitbucket_tool.py list-branches <workspace> <repo_slug> [--limit <n>]
+python3 tools/bitbucket_tool.py list-branches [workspace] <repo_slug> [--limit <n>]
 ```
 
 **Parameters:**
-- `workspace` (required): Workspace slug
+- `workspace` (optional): Workspace slug (defaults to config)
 - `repo_slug` (required): Repository slug
 - `--limit` (optional, default: 10): Maximum results
 
 **Returns:** List of branches with last commit hash, author, and date
+
+**Example:**
+```bash
+# Use default workspace
+python3 tools/bitbucket_tool.py list-branches laguna --limit 20
+```
 
 ---
 
@@ -548,11 +586,11 @@ python3 tools/bitbucket_tool.py list-branches <workspace> <repo_slug> [--limit <
 Gets recent commits from a repository.
 
 ```bash
-python3 tools/bitbucket_tool.py get-commits <workspace> <repo_slug> [--branch <name>] [--limit <n>]
+python3 tools/bitbucket_tool.py get-commits [workspace] <repo_slug> [--branch <name>] [--limit <n>]
 ```
 
 **Parameters:**
-- `workspace` (required): Workspace slug
+- `workspace` (optional): Workspace slug (defaults to config)
 - `repo_slug` (required): Repository slug
 - `--branch` (optional): Branch name (defaults to main branch)
 - `--limit` (optional, default: 10): Maximum results
@@ -563,11 +601,11 @@ python3 tools/bitbucket_tool.py get-commits <workspace> <repo_slug> [--branch <n
 
 **Example:**
 ```bash
-# Get recent commits from main branch
-python3 tools/bitbucket_tool.py get-commits daemonsolutions audit --limit 20
+# Use default workspace, get recent commits from main branch
+python3 tools/bitbucket_tool.py get-commits laguna --limit 20
 
 # Get commits from specific branch
-python3 tools/bitbucket_tool.py get-commits daemonsolutions audit --branch develop --limit 15
+python3 tools/bitbucket_tool.py get-commits laguna --branch develop --limit 15
 ```
 
 ---
@@ -576,11 +614,11 @@ python3 tools/bitbucket_tool.py get-commits daemonsolutions audit --branch devel
 Searches for code in repositories.
 
 ```bash
-python3 tools/bitbucket_tool.py search-code <workspace> <query> [--repo-slug <slug>]
+python3 tools/bitbucket_tool.py search-code [workspace] <query> [--repo-slug <slug>]
 ```
 
 **Parameters:**
-- `workspace` (required): Workspace slug
+- `workspace` (optional): Workspace slug (defaults to config)
 - `query` (required): Text to search for
 - `--repo-slug` (optional): Limit search to specific repository
 
@@ -592,6 +630,12 @@ python3 tools/bitbucket_tool.py search-code <workspace> <query> [--repo-slug <sl
 - Results are paginated (max 20 results)
 
 **Best Practice:** Use specific search terms to narrow results. Code search works best for finding function names, configuration keys, or unique identifiers.
+
+**Example:**
+```bash
+# Use default workspace, search across all repos
+python3 tools/bitbucket_tool.py search-code "def main" --repo-slug laguna
+```
 
 ---
 
@@ -696,9 +740,9 @@ If a tool command fails:
 | Slack get-channel-summary | Channel activity | 200 msg limit | Increase --limit for busy channels |
 | Slack search-messages | Project channel search | Configured channels only | Use specific keywords; prefer get-channel-summary |
 | Gmail search-emails | Email analysis | Fetches all by default | Always use --max-results |
-| Bitbucket list-pull-requests | PR overview | Default 10 results | Use --state MERGED to see recent merges |
-| Bitbucket get-latest-pull-request | Find latest PR | Single result only | Most efficient for "what's the latest PR?" |
-| Bitbucket get-commits | Development activity | Default 10 commits | Increase --limit for detailed history |
+| Bitbucket list-pull-requests | PR overview | Default 10 results | Use --state MERGED to see recent merges; workspace defaults to config |
+| Bitbucket get-latest-pull-request | Find latest PR | Single result only | Most efficient for "what's the latest PR?"; workspace defaults to config |
+| Bitbucket get-commits | Development activity | Default 10 commits | Increase --limit for detailed history; workspace defaults to config |
 
 ---
 
@@ -723,10 +767,10 @@ If a tool command fails:
 → Use Slack `get-channel-summary` for known channels, or `search-messages` for specific topics
 
 **User asks "what was the last pull request about?":**
-→ Use Bitbucket `get-latest-pull-request` with workspace and repo from config
+→ Use Bitbucket `get-latest-pull-request` with repo slug (workspace defaults to config)
 
 **User asks about pull requests or code changes:**
-→ Use Bitbucket `list-pull-requests` for overview, or `get-pull-request` for specific PRs
+→ Use Bitbucket `list-pull-requests` for overview, or `get-pull-request` for specific PRs (workspace defaults to config)
 
 **User asks about recent development activity:**
-→ Use Bitbucket `get-commits` to see recent commits and changes
+→ Use Bitbucket `get-commits` to see recent commits and changes (workspace defaults to config)

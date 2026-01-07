@@ -2,50 +2,25 @@
 description: Summarize current session, save to vectordb, and continue in a new session
 ---
 
-# Slide Window Command
-
-**Trigger:** `/slide-window`
-
-**Execution Mode:** DIRECT execution by the Orchestrator Agent.
-*   **CRITICAL: DO NOT** delegate this to a sub-agent.
-*   **Efficiency Rationale:** The Orchestrator Agent (You) already holds the full conversation context in memory. Delegating to a sub-agent would require passing this massive context, which is inefficient, slow, and prone to data loss. You are the most capable model (Claude 3.5 Sonnet) for this complex summarization task. Direct execution is faster and higher quality.
+**Execution:** DIRECT by Orchestrator (DO NOT delegate). You hold full context; delegation is inefficient.
 
 ## Purpose
-Manage long-running sessions by "sliding the window" of context:
-1.  **Synthesize:** Summarize key decisions, technical details, and next steps from the current session.
-2.  **Persist:** Save this summary to the personal knowledge base (`personal-knowledge_store_knowledge`) for semantic retrieval.
-3.  **Restart:** seamless transition to a fresh session with the summary injected.
+Slide context window for long sessions:
+1. **Synthesize:** Summarize decisions, technical details, next steps
+2. **Persist:** Save to `personal-knowledge_store_knowledge`
+3. **Restart:** Fresh session with summary injected
 
-## Execution Steps
+## Steps
 
-1.  **Analyze & Summarize:**
-    Review the full conversation history. Extract:
-    *   Goal of the session
-    *   What was achieved (decisions, discoveries, code changes)
-    *   Current state (files modified, pending tasks)
-    *   Immediate next steps
-    *   *Self-Correction:* Ensure technical details (IDs, paths, commands) are accurate.
+1. **Summarize:** Review history, extract: goal, achievements (decisions, code changes), current state (files modified, pending tasks), next steps. Verify technical accuracy (IDs, paths, commands).
 
-2.  **Store Knowledge:**
-    *   **Tool:** `personal-knowledge_store_knowledge`
-    *   **Title:** Descriptive title (e.g., "Laguna Transfers Investigation")
-    *   **Content:** The structured summary.
-    *   **Tags:** Include `session-summary` + relevant tech tags.
+2. **Store:** Use `personal-knowledge_store_knowledge` with descriptive title, structured content, tags (`session-summary` + tech tags)
 
-3.  **Start New Session:**
-    *   **Retrieve Profile:** Get `aws_bedrock.aws_profile` from `engagement_agent_config.json`.
-    *   **Construct Command:**
-        ```bash
-        unset AWS_VAULT && aws-vault exec <profile> -- opencode run "Continuing from session '<Title>'. Context: <Summary>. Do nothing until further instructions are given"
-        ```
-    *   **Execute:** Run the command using the `bash` tool. **Capture the output.**
+3. **Start New Session:**
+   - Get profile from `engagement_agent_config.json` (`aws_bedrock.aws_profile`)
+   - Execute: `unset AWS_VAULT && aws-vault exec <profile> -- opencode run "Continuing from '<Title>'. Context: <Summary>. Do nothing until further instructions."`
+   - Capture output
 
-4.  **Identify New Session ID:**
-    *   Parse the output of the `opencode run` command to find the new Session ID (typically `ses_...`).
-    *   *Fallback:* If the ID isn't in the output, run `opencode session list` to find the not the most recent, but the one before the most recent. The most recent is the current session ID which we don't want.
+4. **Get Session ID:** Parse output for `ses_...`. Fallback: `opencode session list` (second most recent, not current)
 
-5.  **Handoff:**
-    *   Inform the user the new session has started.
-    *   **CRITICAL:** Instruct them to exit and run the specific connection command:
-        `opencode -s <NEW_SESSION_ID>`
-        (Do NOT recommend `opencode -c` as it defaults to the old session).
+5. **Handoff:** Inform user, instruct: `opencode -s <NEW_SESSION_ID>` (NOT `opencode -c`)

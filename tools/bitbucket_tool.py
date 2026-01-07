@@ -4,14 +4,19 @@ import sys
 from atlassian import Bitbucket
 
 
+def load_config(config_file="config/engagement_agent_config.json"):
+    """Loads and returns the configuration dictionary."""
+    with open(config_file, "r") as f:
+        return json.load(f)
+
+
 def get_bitbucket_client(config_file="config/engagement_agent_config.json"):
     """Initializes and returns a Bitbucket client.
 
     Uses the same Atlassian credentials as Confluence/Jira since Bitbucket
     is part of the Atlassian ecosystem.
     """
-    with open(config_file, "r") as f:
-        config = json.load(f)
+    config = load_config(config_file)
 
     # Check if there's a dedicated bitbucket config first
     bitbucket_config = config.get("bitbucket", {})
@@ -294,21 +299,21 @@ def main():
 
     # List projects
     projects_parser = subparsers.add_parser("list-projects", help="List projects in a workspace")
-    projects_parser.add_argument("workspace", help="Workspace slug")
+    projects_parser.add_argument("workspace", nargs="?", help="Workspace slug (defaults to config)")
 
     # List repositories
     repos_parser = subparsers.add_parser("list-repositories", help="List repositories")
-    repos_parser.add_argument("workspace", help="Workspace slug")
-    repos_parser.add_argument("--project-key", help="Filter by project key")
+    repos_parser.add_argument("workspace", nargs="?", help="Workspace slug (defaults to config)")
+    repos_parser.add_argument("--project-key", help="Filter by project key (defaults to config)")
 
     # Get repository info
     repo_info_parser = subparsers.add_parser("get-repository", help="Get repository information")
-    repo_info_parser.add_argument("workspace", help="Workspace slug")
+    repo_info_parser.add_argument("workspace", nargs="?", help="Workspace slug (defaults to config)")
     repo_info_parser.add_argument("repo_slug", help="Repository slug")
 
     # List pull requests
     prs_parser = subparsers.add_parser("list-pull-requests", help="List pull requests")
-    prs_parser.add_argument("workspace", help="Workspace slug")
+    prs_parser.add_argument("workspace", nargs="?", help="Workspace slug (defaults to config)")
     prs_parser.add_argument("repo_slug", help="Repository slug")
     prs_parser.add_argument(
         "--state", default="OPEN", choices=["OPEN", "MERGED", "DECLINED", "SUPERSEDED"], help="PR state"
@@ -317,13 +322,13 @@ def main():
 
     # Get pull request
     pr_parser = subparsers.add_parser("get-pull-request", help="Get pull request details")
-    pr_parser.add_argument("workspace", help="Workspace slug")
+    pr_parser.add_argument("workspace", nargs="?", help="Workspace slug (defaults to config)")
     pr_parser.add_argument("repo_slug", help="Repository slug")
     pr_parser.add_argument("pr_id", type=int, help="Pull request ID")
 
     # Get latest pull request
     latest_pr_parser = subparsers.add_parser("get-latest-pull-request", help="Get the most recent pull request")
-    latest_pr_parser.add_argument("workspace", help="Workspace slug")
+    latest_pr_parser.add_argument("workspace", nargs="?", help="Workspace slug (defaults to config)")
     latest_pr_parser.add_argument("repo_slug", help="Repository slug")
     latest_pr_parser.add_argument(
         "--state", default="OPEN", choices=["OPEN", "MERGED", "DECLINED", "SUPERSEDED"], help="PR state"
@@ -331,20 +336,20 @@ def main():
 
     # List branches
     branches_parser = subparsers.add_parser("list-branches", help="List branches")
-    branches_parser.add_argument("workspace", help="Workspace slug")
+    branches_parser.add_argument("workspace", nargs="?", help="Workspace slug (defaults to config)")
     branches_parser.add_argument("repo_slug", help="Repository slug")
     branches_parser.add_argument("--limit", type=int, default=10, help="Maximum number of results")
 
     # Get commits
     commits_parser = subparsers.add_parser("get-commits", help="Get recent commits")
-    commits_parser.add_argument("workspace", help="Workspace slug")
+    commits_parser.add_argument("workspace", nargs="?", help="Workspace slug (defaults to config)")
     commits_parser.add_argument("repo_slug", help="Repository slug")
     commits_parser.add_argument("--branch", help="Branch name")
     commits_parser.add_argument("--limit", type=int, default=10, help="Maximum number of results")
 
     # Search code
     search_parser = subparsers.add_parser("search-code", help="Search for code")
-    search_parser.add_argument("workspace", help="Workspace slug")
+    search_parser.add_argument("workspace", nargs="?", help="Workspace slug (defaults to config)")
     search_parser.add_argument("query", help="Search query")
     search_parser.add_argument("--repo-slug", help="Repository slug (optional)")
 
@@ -356,36 +361,78 @@ def main():
 
     try:
         client = get_bitbucket_client(args.config)
+        config = load_config(args.config)
+        
+        # Get default workspace and project key from config
+        default_workspace = config.get("agent", {}).get("bitbucket_workspace")
+        default_project_key = config.get("agent", {}).get("bitbucket_project_key")
 
         if args.command == "list-workspaces":
             print(list_workspaces(client))
 
         elif args.command == "list-projects":
-            print(list_projects(client, args.workspace))
+            workspace = args.workspace if args.workspace else default_workspace
+            if not workspace:
+                print("Error: workspace not provided and not configured in config file", file=sys.stderr)
+                sys.exit(1)
+            print(list_projects(client, workspace))
 
         elif args.command == "list-repositories":
-            print(list_repositories(client, args.workspace, args.project_key))
+            workspace = args.workspace if args.workspace else default_workspace
+            project_key = args.project_key if args.project_key else default_project_key
+            if not workspace:
+                print("Error: workspace not provided and not configured in config file", file=sys.stderr)
+                sys.exit(1)
+            print(list_repositories(client, workspace, project_key))
 
         elif args.command == "get-repository":
-            print(get_repository_info(client, args.workspace, args.repo_slug))
+            workspace = args.workspace if args.workspace else default_workspace
+            if not workspace:
+                print("Error: workspace not provided and not configured in config file", file=sys.stderr)
+                sys.exit(1)
+            print(get_repository_info(client, workspace, args.repo_slug))
 
         elif args.command == "list-pull-requests":
-            print(list_pull_requests(client, args.workspace, args.repo_slug, args.state, args.limit))
+            workspace = args.workspace if args.workspace else default_workspace
+            if not workspace:
+                print("Error: workspace not provided and not configured in config file", file=sys.stderr)
+                sys.exit(1)
+            print(list_pull_requests(client, workspace, args.repo_slug, args.state, args.limit))
 
         elif args.command == "get-pull-request":
-            print(get_pull_request(client, args.workspace, args.repo_slug, args.pr_id))
+            workspace = args.workspace if args.workspace else default_workspace
+            if not workspace:
+                print("Error: workspace not provided and not configured in config file", file=sys.stderr)
+                sys.exit(1)
+            print(get_pull_request(client, workspace, args.repo_slug, args.pr_id))
 
         elif args.command == "get-latest-pull-request":
-            print(get_latest_pull_request(client, args.workspace, args.repo_slug, args.state))
+            workspace = args.workspace if args.workspace else default_workspace
+            if not workspace:
+                print("Error: workspace not provided and not configured in config file", file=sys.stderr)
+                sys.exit(1)
+            print(get_latest_pull_request(client, workspace, args.repo_slug, args.state))
 
         elif args.command == "list-branches":
-            print(list_branches(client, args.workspace, args.repo_slug, args.limit))
+            workspace = args.workspace if args.workspace else default_workspace
+            if not workspace:
+                print("Error: workspace not provided and not configured in config file", file=sys.stderr)
+                sys.exit(1)
+            print(list_branches(client, workspace, args.repo_slug, args.limit))
 
         elif args.command == "get-commits":
-            print(get_recent_commits(client, args.workspace, args.repo_slug, args.branch, args.limit))
+            workspace = args.workspace if args.workspace else default_workspace
+            if not workspace:
+                print("Error: workspace not provided and not configured in config file", file=sys.stderr)
+                sys.exit(1)
+            print(get_recent_commits(client, workspace, args.repo_slug, args.branch, args.limit))
 
         elif args.command == "search-code":
-            print(search_code(client, args.workspace, args.query, args.repo_slug))
+            workspace = args.workspace if args.workspace else default_workspace
+            if not workspace:
+                print("Error: workspace not provided and not configured in config file", file=sys.stderr)
+                sys.exit(1)
+            print(search_code(client, workspace, args.query, args.repo_slug))
 
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
