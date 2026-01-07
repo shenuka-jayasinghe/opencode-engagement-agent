@@ -25,9 +25,9 @@ A proactive AI assistant for consultants working on client engagements. Seamless
 
 ```
 cd ./opencode-dashboard
-npm start
-open 
+npm start 
 ```
+then `open http://localhost:3030`
 
 
 ## Quick Start
