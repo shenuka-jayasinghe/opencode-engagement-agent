@@ -4,7 +4,8 @@ A proactive AI assistant for consultants working on client engagements. Seamless
 
 ## Architecture
 
-![architecture](./img//architecture.png)
+<img width="2071" height="1201" alt="image" src="https://github.com/user-attachments/assets/08a5665b-5de9-4714-823c-f7216dbd6adc" />
+
 
 ## Features
 
