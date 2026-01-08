@@ -15,7 +15,7 @@ This command duplicates the latest WSR and only updates specific fields based on
    - **FIRST ACTION:** Ask the user: "Please provide the URL of the latest WSR, or type 'search' to find it automatically"
    - **If user provides URL:**
      - Parse URL to extract: space key, page ID
-     - Fetch content: `python3 tools/confluence_tool.py get-page-content [page_id]`
+     - **DELEGATE to confluence-agent:** Fetch content and parent info using Task tool
      - Extract from previous WSR:
        - **Title format** (e.g., "Weekly Status Report 2025-12-19" vs "WSR - 2025-12-19")
        - **Parent directory** using API with `?expand=ancestors`
@@ -24,7 +24,6 @@ This command duplicates the latest WSR and only updates specific fields based on
    - **If user says 'search':** Proceed to step 2 to search automatically
 
 2. **Configuration & Space Selection (if searching automatically):**
-   - Use subagent skills and config for information gathering on bitbucket, conflunce, jira and slack
    - Read `config/engagement_agent_config.json`
    - Extract: `confluence_space_key`, `wsr_template_url`, `client_name`, `programme_name`, `jira_project_key`, `slack_channel_ids`, `bitbucket_workspace`, `bitbucket_project_key`
    - **Determine WSR Space:**
@@ -34,43 +33,50 @@ This command duplicates the latest WSR and only updates specific fields based on
    - Output to user: "Using Confluence space: [SPACE_KEY] for WSR generation"
 
 3. **Find Latest WSR (if not provided by user):**
-   - Search for recent WSRs: `python3 tools/confluence_tool.py search [SPACE_KEY] "Weekly Status Report" --title-only --limit 5`
-   - Look for patterns: "WSR - YYYY-MM-DD" or "Weekly Status Report YYYY-MM-DD"
-   - Sort by date, select most recent
-   - Fetch most recent WSR content: `python3 tools/confluence_tool.py get-page-content [recent_wsr_page_id]`
+   - **DELEGATE to confluence-agent:** Use Task tool to search for recent WSRs
+     - Search for: "Weekly Status Report" with `--title-only --limit 5`
+     - Look for patterns: "WSR - YYYY-MM-DD" or "Weekly Status Report YYYY-MM-DD"
+     - Sort by date, select most recent
+     - Fetch most recent WSR content including parent info
    - Extract:
      - **Title Format:** Note exact title format from search results
-     - **Parent Directory:** Use API with `?expand=ancestors` to get parent page ID and title
+     - **Parent Directory:** Parent page ID and title
      - **All sections:** Store complete content for duplication
    - Store for later: `parent_id`, `title_format`, `previous_wsr_content`
 
-4. **Gather Information for Updated Fields:**
+4. **Gather Information for Updated Fields (PARALLEL EXECUTION):**
    - **Determine Reporting Period:**
      - Default: 7 days ending today (unless user specified different period)
      - Calculate start/end dates
 
-   - **Bitbucket - Merged PRs:**
-     - List repos: `python3 tools/bitbucket_tool.py list-repositories`
-     - For each repo, get merged PRs in reporting period: `list-pull-requests <repo> --state MERGED --limit 20`
+   - **EXECUTE ALL SUB-AGENTS IN PARALLEL** using single Task tool invocation with multiple agents:
+   
+   - **DELEGATE to bitbucket-agent:**
+     - List repositories in project (from `bitbucket_project_key`)
+     - For each repo, get merged PRs in reporting period (--state MERGED --limit 20)
      - Extract: PR title, branch, author, reviewers, Jira ticket IDs (pattern: `[JIRA_PROJECT_KEY]-\d+`), merge date, URL
+     - Get open PRs at end of period (--state OPEN --limit 10)
      - Build ticket→PR map for cross-reference
+     - Return: List of merged PRs with metadata, list of open PRs
 
-   - **Jira - Tickets:**
-     - Get tickets for reporting period: `python3 tools/jira_tool.py get-summary --project-key [JIRA_PROJECT_KEY] --days [PERIOD_DAYS] --max-results 100`
-     - Cross-reference with PR map: enrich tickets with PR details
+   - **DELEGATE to jira-agent:**
+     - Get tickets for reporting period using `get-summary --project-key [KEY] --days [DAYS] --max-results 100`
      - Identify: completed tickets (Done/Resolved/Closed), in-progress tickets
-     - Validate extracted tickets: `get-ticket <number>` if not in summary
+     - Validate extracted tickets if needed using `get-ticket`
+     - Return: Categorized tickets (completed, in-progress) with summaries
 
-   - **Bitbucket - Open PRs:**
-     - Get open PRs at end of period: `list-pull-requests <repo> --state OPEN --limit 10`
-     - Extract associated Jira tickets
-
-   - **Slack - Messages:**
-     - For each channel in `slack_channel_ids`: `python3 tools/slack_tool.py get-channel-summary <id> <start> <end> --limit 500`
+   - **DELEGATE to slack-agent:**
+     - For each channel in `slack_channel_ids`: get channel summary for reporting period (--limit 500)
      - Identify unresolved discussions/questions (conversations without resolution)
-     - Cross-reference with Jira: exclude conversations where associated ticket is resolved/closed
+     - Extract action items and blockers mentioned
+     - Return: Key discussion themes, unresolved items, action items
 
-5. **Generate Updated Content:**
+5. **Synthesize Data and Generate Updated Content:**
+
+   - **Cross-Reference Data:** Combine results from all sub-agents
+     - Enrich Jira tickets with PR details from bitbucket-agent
+     - Link open PRs to in-progress Jira tickets
+     - Filter Slack discussions: exclude items where associated Jira ticket is resolved/closed
 
    - **Reporting Period:**
      - Format: "Week X (YYYY-MM-DD - YYYY-MM-DD)"
@@ -114,18 +120,20 @@ This command duplicates the latest WSR and only updates specific fields based on
      - Capture the Confluence page ID from output
 
 7. **Verify Page Creation:**
-   - Search for the newly created page: `python3 tools/confluence_tool.py search [SPACE_KEY] "[TITLE_FORMAT] YYYY-MM-DD" --title-only --limit 1`
+   - **DELEGATE to confluence-agent:** Use Task tool to verify the newly created page
+     - Search for the newly created page with exact title
+     - Extract page ID and webui path from search results
    - If NOT found: Report error - "WSR creation failed - page not found in Confluence space [SPACE_KEY]"
-   - If found: Extract page ID and webui path from search results
-   - **URL Construction:**
-     - From search results, get `_links.webui` field (e.g., "/spaces/SDRY/pages/51617366018/Weekly+Status+Report+2026-01-07")
-     - Build full URL: `https://daemonsolutions.atlassian.net/wiki` + `webui_path`
-     - **CRITICAL:** Do NOT add duplicate `/wiki/wiki/` - only use `/wiki/` once
-   - Verify URL matches format from latest WSR
-   - **Verify Parent Directory:** Confirm parent matches latest WSR
+   - If found: 
+     - **URL Construction:**
+       - From search results, get `_links.webui` field (e.g., "/spaces/SDRY/pages/51617366018/Weekly+Status+Report+2026-01-07")
+       - Build full URL: `https://daemonsolutions.atlassian.net/wiki` + `webui_path`
+       - **CRITICAL:** Do NOT add duplicate `/wiki/wiki/` - only use `/wiki/` once
+     - Verify URL matches format from latest WSR
+     - **Verify Parent Directory:** Confirm parent matches latest WSR
 
 8. **Verify Updated Fields:**
-   - Fetch generated WSR content: `python3 tools/confluence_tool.py get-page-content <page_id>`
+   - **DELEGATE to confluence-agent:** Fetch generated WSR content
    - Verify:
      - **Reporting Period:** Matches specified period
      - **Executive Summary:** Updated with new content
@@ -149,6 +157,42 @@ This command duplicates the latest WSR and only updates specific fields based on
     - **ONLY if URL verified:** `open [verified_confluence_url]`
     - If verification failed, skip this step and report error
 
+## Execution Strategy
+
+This command leverages specialized sub-agents as configured in `opencode.json` and `.opencode/skill/` files:
+
+### Sub-Agent Delegation (PARALLEL where possible):
+
+**When gathering information (Step 4):** Execute ALL sub-agents in PARALLEL using a single Task tool invocation with multiple agents:
+- **confluence-agent** (Gemini 2.5 Flash): Search WSRs, fetch content, verify pages
+- **bitbucket-agent** (Gemini 2.5 Flash): List repos, fetch PRs (merged and open), extract Jira references
+- **jira-agent** (Gemini 2.5 Flash): Get ticket summaries, categorize by status
+- **slack-agent** (Gemini 2.5 Flash): Fetch channel summaries, identify unresolved discussions
+
+**Benefits:**
+- **50% faster:** Parallel execution instead of sequential
+- **Higher quality:** Each agent has specialized knowledge from skill files
+- **Consistent:** Agents follow standardized patterns from skill documentation
+
+**Direct Execution (for simple 1-2 tool operations):**
+- **wsr_tool.py:** Use bash directly (Step 6) - single tool, simple operation
+- **Config reading:** Read `engagement_agent_config.json` directly (Step 2)
+
+### Task Tool Usage Pattern:
+
+```
+Use Task tool with:
+- subagent_type: "confluence-agent" | "bitbucket-agent" | "jira-agent" | "slack-agent"
+- prompt: Detailed instructions including config context, date ranges, expected output format
+- description: Brief task summary
+
+Example (Step 4):
+Invoke ALL agents in parallel in a SINGLE message with multiple Task tool calls:
+1. Task(subagent_type="bitbucket-agent", prompt="[detailed instructions for PR gathering]")
+2. Task(subagent_type="jira-agent", prompt="[detailed instructions for ticket summary]")
+3. Task(subagent_type="slack-agent", prompt="[detailed instructions for channel summary]")
+```
+
 ## Key Principles
 
 - **Duplication-First:** Copy the entire previous WSR structure
@@ -157,3 +201,4 @@ This command duplicates the latest WSR and only updates specific fields based on
 - **Default Period:** 7 days unless user specifies otherwise
 - **Jira Integration:** Auto-link all Jira ticket IDs in the final report
 - **Verification:** Always verify page creation and updated fields before returning URL
+- **Parallel Execution:** Use Task tool to invoke multiple sub-agents concurrently for maximum efficiency

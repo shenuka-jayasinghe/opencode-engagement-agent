@@ -373,7 +373,7 @@ python3 tools/gmail_tool.py search-emails [--subject <text>] [--recipients <emai
 **Example:**
 ```bash
 # Find recent emails from stakeholders
-python3 tools/gmail_tool.py search-emails --senders "ryan.williams@superdry.com" --start-date 2025-12-01 --max-results 50
+python3 tools/gmail_tool.py search-emails --senders "stakeholder@client.com" --start-date 2025-12-01 --max-results 50
 
 # Find emails about a specific topic
 python3 tools/gmail_tool.py search-emails --subject "WSR,status report" --start-date 2025-12-15 --max-results 20

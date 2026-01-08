@@ -142,7 +142,7 @@ What was the last pull request about?
 
 **Test Gmail:**
 ```
-Find emails from david.holmes@superdry.com about deployment
+Find emails from john.doe@client.com about deployment
 ```
 
 **Test AWS (if configured):**
@@ -316,8 +316,8 @@ List my knowledge entries tagged with "aws" and "debugging"
 
 **Example entry structure:**
 ```
-Title: Windcheater AWS Account and Matillion DNS Records
-Tags: aws, windcheater, superdry, route53, dns, matillion, infrastructure, alb
+Title: Project AWS Account and Application DNS Records
+Tags: aws, project, client, route53, dns, infrastructure, alb
 Content: [Full technical details with commands, outputs, and context]
 ```
 
