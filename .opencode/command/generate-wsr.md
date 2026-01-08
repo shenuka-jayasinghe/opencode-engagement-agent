@@ -24,6 +24,7 @@ This command duplicates the latest WSR and only updates specific fields based on
    - **If user says 'search':** Proceed to step 2 to search automatically
 
 2. **Configuration & Space Selection (if searching automatically):**
+   - Use subagent skills and config for information gathering on bitbucket, conflunce, jira and slack
    - Read `config/engagement_agent_config.json`
    - Extract: `confluence_space_key`, `wsr_template_url`, `client_name`, `programme_name`, `jira_project_key`, `slack_channel_ids`, `bitbucket_workspace`, `bitbucket_project_key`
    - **Determine WSR Space:**
@@ -133,7 +134,7 @@ This command duplicates the latest WSR and only updates specific fields based on
      - **Unchanged sections:** Blockers, RAID, Service Improvements match previous WSR exactly
    - Report any discrepancies to user
 
-9. **Return to User:**
+9.  **Return to User:**
    - **ONLY if page verified:** Return verified WSR URL and summary
    - **URL Format:** `https://daemonsolutions.atlassian.net/wiki/spaces/[SPACE]/pages/[ID]/[TITLE]`
    - **Example Output:** "WSR created: https://daemonsolutions.atlassian.net/wiki/spaces/SDRY/pages/51617366018/Weekly+Status+Report+2026-01-07"
