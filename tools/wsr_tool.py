@@ -5,9 +5,9 @@ from jinja2 import Environment, FileSystemLoader
 from confluence_tool import get_confluence_client, create_confluence_page
 
 
-def link_jira_tickets(text, jira_base_url="https://daemonsolutions.atlassian.net"):
+def link_jira_tickets(text, jira_base_url="https://your-domain.atlassian.net"):
     """
-    Converts plain text Jira ticket references (e.g., SD-1234) to HTML links.
+    Converts plain text Jira ticket references (e.g., PROJ-1234) to HTML links.
     Only converts if the ticket reference is not already within an <a> tag.
 
     Args:

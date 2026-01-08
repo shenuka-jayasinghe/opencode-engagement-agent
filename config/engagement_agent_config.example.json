@@ -1,5 +1,5 @@
 {
-  "opencode_session_command": "unset AWS_VAULT && aws-vault exec daemon-ml -- opencode",
+  "opencode_session_command": "unset AWS_VAULT && aws-vault exec your-profile -- opencode",
   "python": {
     "venv_path": "venv"
   },
@@ -31,7 +31,7 @@
     "cloud": true
   },
   "aws_bedrock" : {
-    "aws_profile" : "daemon-ml"
+    "aws_profile" : "your-profile"
   },
   "agent" : {
     "from_time" : "2025-01-01", 
@@ -40,7 +40,7 @@
     "jira_project_key": "PROJ",
     "confluence_space_key": ["SPACE1","SPACE2"],
     "bitbucket_workspace": "your-workspace-slug",
-    "bitbucket_project_key": "SUP",
+    "bitbucket_project_key": "PROJ",
     "cloud_environments": ["AWS"],
     "regions": ["us-east-1"],
     "wsr_template_url": "https://your-domain.atlassian.net/wiki/spaces/SPACE/pages/123456/Weekly+Status+Report+Template",

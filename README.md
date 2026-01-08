@@ -118,12 +118,12 @@ Test each integration to ensure everything is working:
 
 **Test Jira:**
 ```
-Show me SD tickets updated in the last week
+Show me PROJ tickets updated in the last week
 ```
 
 **Test Confluence:**
 ```
-Search SDRY space for "architecture" documentation
+Search SPACE space for "architecture" documentation
 ```
 
 **Test Slack:**
@@ -133,7 +133,7 @@ Summarize the client channel from the last 3 days
 
 **Test Bitbucket:**
 ```
-List repositories in the SUP project
+List repositories in the PROJ project
 ```
 or
 ```
@@ -142,12 +142,12 @@ What was the last pull request about?
 
 **Test Gmail:**
 ```
-Find emails from john.doe@client.com about deployment
+Find emails from stakeholder@example.com about deployment
 ```
 
 **Test AWS (if configured):**
 ```
-What is the CIDR range of the windcheater-prod VPC?
+What is the CIDR range of the production VPC?
 ```
 
 ## Key Features & Commands
@@ -286,7 +286,7 @@ End the session:
 
 **Simple search:**
 ```
-What is the matillionhub DNS record?
+What is the application DNS record?
 ```
 The agent automatically searches its knowledge base when you ask factual questions.
 
@@ -405,7 +405,7 @@ Your settings are stored in `config/engagement_agent_config.json`:
     "jira_project_key": "PROJ",
     "confluence_space_key": ["SPACE1", "SPACE2"],
     "bitbucket_workspace": "your-workspace-slug",
-    "bitbucket_project_key": "SUP",
+    "bitbucket_project_key": "PROJ",
     "slack_channel_ids": ["C01234567"],
     "pull_request_channel": "G01C28YBXQT",
     "recipient_emails_to_scan": ["colleague@example.com"],
@@ -478,7 +478,7 @@ All Python tools use a virtual environment (configured in `config/engagement_age
 source venv/bin/activate
 
 # Run tools directly
-python3 tools/jira_tool.py get-summary --project-key SD --days 7
+python3 tools/jira_tool.py get-summary --project-key PROJ --days 7
 ```
 
 The agent automatically handles virtual environment activation when executing tools.

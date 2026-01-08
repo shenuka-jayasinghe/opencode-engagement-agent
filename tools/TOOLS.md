@@ -29,7 +29,7 @@ cd /path/to/opencode-engagement-agent && source <venv_path>/bin/activate && pyth
 
 ### Example
 ```bash
-cd /Users/shenuka/git/daemon/gen-ai-examples/opencode-engagement-agent && source venv/bin/activate && python3 tools/jira_tool.py get-summary --project-key SD --days 7
+cd /Users/username/git/project/opencode-engagement-agent && source venv/bin/activate && python3 tools/jira_tool.py get-summary --project-key PROJ --days 7
 ```
 
 ### Why This Matters
@@ -99,7 +99,7 @@ python3 tools/confluence_tool.py create-page --space-key <key> --title <title> -
 ```
 
 **Parameters:**
-- `--space-key` (required): Confluence space key (e.g., "SDRY")
+- `--space-key` (required): Confluence space key (e.g., "SPACE")
 - `--title` (required): Page title
 - `--content` (required): HTML content in Confluence storage format
 - `--parent-id` (optional): Parent page ID for creating child pages
@@ -121,7 +121,7 @@ python3 tools/confluence_tool.py search <space_key> <query> [--limit <n>] [--sta
 ```
 
 **Parameters:**
-- `space_key` (required): Space to search in (e.g., "SDRY", "EXTSUP")
+- `space_key` (required): Space to search in (e.g., "SPACE", "SPACE2")
 - `query` (required): Search query text
 - `--limit` (optional, default: 10): Maximum results to return
 - `--start` (optional, default: 0): Offset for pagination
@@ -145,10 +145,10 @@ python3 tools/confluence_tool.py search <space_key> <query> [--limit <n>] [--sta
 **Example:**
 ```bash
 # Find latest WSR pages
-python3 tools/confluence_tool.py search SDRY "Weekly Status Report" --title-only --modified-after 2025-12-01 --limit 20
+python3 tools/confluence_tool.py search SPACE "Weekly Status Report" --title-only --modified-after 2025-12-01 --limit 20
 
 # Find pages with specific label
-python3 tools/confluence_tool.py search SDRY "architecture" --labels "design,review" --limit 30
+python3 tools/confluence_tool.py search SPACE "architecture" --labels "design,review" --limit 30
 ```
 
 ---
@@ -187,7 +187,7 @@ python3 tools/jira_tool.py get-summary [--project-key <key>] [--days <n>] [--max
 **Example:**
 ```bash
 # Get summary for last 14 days
-python3 tools/jira_tool.py get-summary --project-key SD --days 14 --max-results 100
+python3 tools/jira_tool.py get-summary --project-key PROJ --days 14 --max-results 100
 
 # Get summary for specific date range
 python3 tools/jira_tool.py get-summary --start-date 2025-12-01 --end-date 2025-12-15
@@ -203,7 +203,7 @@ python3 tools/jira_tool.py get-ticket <ticket_number>
 ```
 
 **Parameters:**
-- `ticket_number` (required): Ticket key (e.g., "SD-123")
+- `ticket_number` (required): Ticket key (e.g., "PROJ-123")
 
 **Returns:** Ticket key, summary, and description
 
@@ -237,10 +237,10 @@ python3 tools/jira_tool.py search-tickets <jql_query> [--max-results <n>] [--sta
 **Example:**
 ```bash
 # Find tickets assigned to specific user
-python3 tools/jira_tool.py search-tickets 'project = "SD" AND assignee = "user@example.com"' --max-results 100
+python3 tools/jira_tool.py search-tickets 'project = "PROJ" AND assignee = "user@example.com"' --max-results 100
 
 # Find high-priority bugs
-python3 tools/jira_tool.py search-tickets 'project = "SD" AND type = Bug AND priority = High' --max-results 50
+python3 tools/jira_tool.py search-tickets 'project = "PROJ" AND type = Bug AND priority = High' --max-results 50
 ```
 
 ---
@@ -669,7 +669,7 @@ python3 tools/wsr_tool.py --space-key <key> --title <title> --parent-id <id> --p
 
 When a user request is ambiguous, ALWAYS ask clarifying questions:
 
-- **For searches:** "Which Confluence space should I search? (SDRY or EXTSUP?)"
+- **For searches:** "Which Confluence space should I search? (SPACE or SPACE2?)"
 - **For date ranges:** "What date range should I use? Last 7 days, or a specific period?"
 - **For limits:** "How many results do you need? (default limits may be too small)"
 
