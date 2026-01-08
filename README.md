@@ -102,11 +102,11 @@ Run the onboarding command to set up your integrations:
 ```
 
 This interactive wizard will guide you through:
-- ✅ Creating a Python virtual environment with all dependencies
-- ✅ Configuring Atlassian (Jira & Confluence) API credentials
-- ✅ Setting up Slack bot token with proper scopes
-- ✅ Configuring Gmail OAuth credentials
-- ✅ Adding project-specific settings (space keys, channel IDs, etc.)
+- Creating a Python virtual environment with all dependencies
+- Configuring Atlassian (Jira & Confluence) API credentials
+- Setting up Slack bot token with proper scopes
+- Configuring Gmail OAuth credentials
+- Adding project-specific settings (space keys, channel IDs, etc.)
 
 **Important:** Make sure to:
 - Invite the Slack bot to all configured channels (`/invite @Engagement Agent`)
@@ -224,21 +224,21 @@ The agent uses **two complementary systems** to preserve knowledge:
 The agent **proactively saves** important technical information during conversations:
 
 **What gets saved automatically:**
-- ✅ Code patterns, commands, and configurations discussed
-- ✅ Technical decisions and architectural approaches
-- ✅ Problem-solving strategies and debugging steps
-- ✅ API endpoints and integration patterns (no actual secrets)
-- ✅ Solutions to resolved issues
-- ✅ Best practices and optimization techniques
-- ✅ Project-specific configurations and setup procedures
+- Code patterns, commands, and configurations discussed
+- Technical decisions and architectural approaches
+- Problem-solving strategies and debugging steps
+- API endpoints and integration patterns (no actual secrets)
+- Solutions to resolved issues
+- Best practices and optimization techniques
+- Project-specific configurations and setup procedures
 
 **What does NOT get saved:**
-- ❌ Casual conversation or greetings
-- ❌ Questions without answers
-- ❌ Secrets, passwords, API keys, or credentials
-- ❌ Personal or private information
-- ❌ Trivial exchanges or clarifications
-- ❌ Content already documented in Confluence (links to Confluence instead)
+- Casual conversation or greetings
+- Questions without answers
+- Secrets, passwords, API keys, or credentials
+- Personal or private information
+- Trivial exchanges or clarifications
+- Content already documented in Confluence (links to Confluence instead)
 
 **When it saves:**
 - After resolving a technical problem
@@ -249,7 +249,7 @@ The agent **proactively saves** important technical information during conversat
 
 **Example notification:**
 ```
-📝 Stored in knowledge base: AWS Lambda Timeout Configuration Best Practices (Entry #42)
+Stored in knowledge base: AWS Lambda Timeout Configuration Best Practices (Entry #42)
 ```
 
 **Manual control:**
@@ -323,11 +323,11 @@ Content: [Full technical details with commands, outputs, and context]
 
 ### Privacy & Security
 
-- ✅ **Local storage**: All knowledge stored in your personal MCP server
-- ✅ **No secrets**: Automatically filters out credentials, tokens, keys
-- ✅ **No PII**: Excludes personal or private information
-- ✅ **User control**: Manually trigger, search, or disable storage
-- ✅ **Transparent**: You're notified when information is saved
+- **Local storage**: All knowledge stored in your personal MCP server
+- **No secrets**: Automatically filters out credentials, tokens, keys
+- **No PII**: Excludes personal or private information
+- **User control**: Manually trigger, search, or disable storage
+- **Transparent**: You're notified when information is saved
 
 ### Best Practices
 
@@ -354,11 +354,11 @@ You: What was that Python virtual environment issue we fixed last month?
 Agent: [Searches knowledge base and finds the solution]
 
 You: Start logging, I'm about to debug a complex CloudTrail Lake query
-Agent: ✅ Started logging session #12 "CloudTrail Lake debugging"
+Agent: Started logging session #12 "CloudTrail Lake debugging"
 You: [Work through the problem]
 Agent: [Logs every turn automatically]
 You: End session, we fixed the SQL syntax issue
-Agent: ✅ Ended session #12 (23 messages logged)
+Agent: Ended session #12 (23 messages logged)
 ```
 
 ## Configuration
@@ -445,10 +445,10 @@ The `INSTRUCTIONS.md` system prompt is designed to be comprehensive yet efficien
 - **Leaves available**: ~198,500 tokens for conversation and tool outputs
 
 **Why this matters:**
-- ✅ Minimal overhead allows for longer conversations
-- ✅ Maximum room for large tool outputs (CloudTrail queries, Confluence pages, Jira summaries)
-- ✅ Extended multi-turn conversations without context pressure
-- ✅ Skill system keeps specialized knowledge out of base prompt
+- Minimal overhead allows for longer conversations
+- Maximum room for large tool outputs (CloudTrail queries, Confluence pages, Jira summaries)
+- Extended multi-turn conversations without context pressure
+- Skill system keeps specialized knowledge out of base prompt
 
 **Comparison:**
 - Base prompt: ~1,500 tokens (0.75%)
@@ -457,7 +457,7 @@ The `INSTRUCTIONS.md` system prompt is designed to be comprehensive yet efficien
 
 The system prompt is highly optimized for token efficiency while retaining all critical functionality. The skill system (`.opencode/skill/*.md`) allows loading specialized knowledge on-demand without inflating the base prompt.
 
-**Last updated**: 2026-01-02 (~87 lines, ~1,500 tokens) - **63% reduction from previous version (4,100 → 1,500 tokens)**
+**Last updated**: 2026-01-02 (~87 lines, ~1,500 tokens) - **63% reduction from previous version (4,100 to 1,500 tokens)**
 
 ## Requirements
 
@@ -485,11 +485,11 @@ The agent automatically handles virtual environment activation when executing to
 
 ## Security & Privacy
 
-- ✅ **Read-only by default**: All operations are non-destructive
-- ✅ **Credential isolation**: API tokens stored in local config file
-- ✅ **Privacy-aware**: Filters out personal/sensitive emails
-- ✅ **AWS read-only**: Only `describe`, `list`, `get` commands allowed
-- ✅ **Local execution**: All data processing happens on your machine
+- **Read-only by default**: All operations are non-destructive
+- **Credential isolation**: API tokens stored in local config file
+- **Privacy-aware**: Filters out personal/sensitive emails
+- **AWS read-only**: Only `describe`, `list`, `get` commands allowed
+- **Local execution**: All data processing happens on your machine
 
 ## Troubleshooting
 
