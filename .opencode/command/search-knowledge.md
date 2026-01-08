@@ -1,6 +1,5 @@
 ---
 description: Search personal knowledge vector database
-agent: general
 ---
 
 Perform semantic or text-based searches in personal knowledge database.

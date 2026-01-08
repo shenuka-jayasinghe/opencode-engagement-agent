@@ -1,6 +1,5 @@
 ---
 description: Manage personal knowledge database entries
-agent: general
 ---
 
 ## Commands

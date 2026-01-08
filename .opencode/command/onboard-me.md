@@ -1,6 +1,5 @@
 ---
 description: Setup credentials for Engagement Agent
-agent: general
 ---
 
 Guide user through credential setup for Engagement Agent. Check `engagement_agent_config.json` and fill missing values.

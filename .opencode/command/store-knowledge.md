@@ -1,6 +1,5 @@
 ---
 description: Store information in personal knowledge vector database
-agent: general
 ---
 
 ## Usage
