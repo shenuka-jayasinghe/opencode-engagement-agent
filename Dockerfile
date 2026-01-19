@@ -12,7 +12,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     sudo \
     python3 \
     python3-pip \
-    python3-venv \
  && rm -rf /var/lib/apt/lists/*
 
 # Create and configure ubuntu user
@@ -48,9 +47,9 @@ RUN pip install --no-cache-dir -r tools/requirements.txt
 # Set environment
 ENV PATH="/home/ubuntu/.opencode/bin:${PATH}"
 ENV OPENCODE_SERVER_PASSWORD=""
-
+ENV HOME="/home/ubuntu/"
 EXPOSE 22 3000
 
 # Need root to start sshd, then drop to ubuntu for opencode
 USER root
-CMD ["sh", "-c", "/usr/sbin/sshd && cd /home/ubuntu/opencode-engagement-agent && sudo -E HOME=/home/ubuntu -u ubuntu /home/ubuntu/.opencode/bin/opencode web --port 3000 --hostname 0.0.0.0"]
+CMD ["sh", "-c", "/usr/sbin/sshd && cd /home/ubuntu/opencode-engagement-agent && sudo -E -u ubuntu /home/ubuntu/.opencode/bin/opencode web --port 3000 --hostname 0.0.0.0"]

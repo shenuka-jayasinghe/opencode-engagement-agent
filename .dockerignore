@@ -1,0 +1,8 @@
+*engagement_agent_config.json
+tools/templates/*
+*venv
+*pycache*
+*local_cache*
+*.claude*
+*node_modules*
+*.terraform
