@@ -11,8 +11,8 @@ This command duplicates the latest WSR and only updates specific fields based on
 
 ## Steps
 
-1. **Ask for Latest WSR URL:**
-   - **FIRST ACTION:** Ask the user: "Please provide the URL of the latest WSR, or type 'search' to find it automatically"
+1. **Ask for Latest WSR URL and Reporting Period:**
+   - **FIRST ACTION:** Ask the user: "Please provide the URL of the latest WSR (or type 'search') AND confirm if you want the report for the past 7 days or specify a custom period."
    - **If user provides URL:**
      - Parse URL to extract: space key, page ID
      - **DELEGATE to confluence-agent:** Fetch content and parent info using Task tool
@@ -22,6 +22,7 @@ This command duplicates the latest WSR and only updates specific fields based on
        - **All content sections** for duplication
      - Verify URL path format for later use
    - **If user says 'search':** Proceed to step 2 to search automatically
+   - **Parse Reporting Period:** Note the user's preference (7 days vs custom dates) for use in Step 4.
 
 2. **Configuration & Space Selection (if searching automatically):**
    - Read `config/engagement_agent_config.json`
@@ -44,63 +45,84 @@ This command duplicates the latest WSR and only updates specific fields based on
      - **All sections:** Store complete content for duplication
    - Store for later: `parent_id`, `title_format`, `previous_wsr_content`
 
-4. **Gather Information for Updated Fields (PARALLEL EXECUTION):**
+4. **Gather Information for Updated Fields - START WITH BITBUCKET:**
    - **Determine Reporting Period:**
      - Default: 7 days ending today (unless user specified different period)
      - Calculate start/end dates
 
-   - **EXECUTE ALL SUB-AGENTS IN PARALLEL** using single Task tool invocation with multiple agents:
+   - **CRITICAL: Use PR merge dates as PRIMARY source of truth for completed work**
    
-   - **DELEGATE to bitbucket-agent:**
-     - List repositories in project (from `bitbucket_project_key`)
-     - For each repo, get merged PRs in reporting period (--state MERGED --limit 20)
-     - Extract: PR title, branch, author, reviewers, Jira ticket IDs (pattern: `[JIRA_PROJECT_KEY]-\d+`), merge date, URL
-     - Get open PRs at end of period (--state OPEN --limit 10)
-     - Build ticket→PR map for cross-reference
-     - Return: List of merged PRs with metadata, list of open PRs
+   - **STEP 4.1 - Get PR Data (Use bitbucket_tool.py directly):**
+     - List all repositories in project: `python3 tools/bitbucket_tool.py list-repositories [workspace] --project-key [PROJECT_KEY]`
+     - For EACH repository, get PRs:
+       - **Merged PRs:** `python3 tools/bitbucket_tool.py list-pull-requests [workspace] [repo_slug] --state MERGED --limit 50`
+         - Filter by **created date** within reporting period (check "Created: YYYY-MM-DD" in output)
+         - Extract: PR number, title, created date, Jira ticket IDs (pattern: `SD-\d+` case-insensitive)
+       - **Open PRs:** `python3 tools/bitbucket_tool.py list-pull-requests [workspace] [repo_slug] --state OPEN --limit 20`
+         - Extract: PR number, title, Jira ticket IDs
+     - Build comprehensive lists:
+       - `merged_prs`: All PRs merged in period with {repo, pr_num, title, date, jira_id}
+       - `open_prs`: All currently open PRs with {repo, pr_num, title, jira_id}
+     - Create ticket→PR mapping for cross-reference
 
-   - **DELEGATE to jira-agent:**
-     - Get tickets for reporting period using `get-summary --project-key [KEY] --days [DAYS] --max-results 100`
-     - Identify: completed tickets (Done/Resolved/Closed), in-progress tickets
-     - Validate extracted tickets if needed using `get-ticket`
-     - Return: Categorized tickets (completed, in-progress) with summaries
-
-   - **DELEGATE to slack-agent:**
-     - For each channel in `slack_channel_ids`: get channel summary for reporting period (--limit 500)
-     - Identify unresolved discussions/questions (conversations without resolution)
-     - Extract action items and blockers mentioned
-     - Return: Key discussion themes, unresolved items, action items
+   - **STEP 4.2 - Verify Work with Jira:**
+     - For each unique Jira ticket ID from merged PRs:
+       - Use `python3 tools/jira_tool.py get-ticket [TICKET_ID]` to get full summary
+       - Verify ticket exists and get proper description
+     - For open PRs with Jira IDs:
+       - Get ticket status to confirm it's "In Progress" or similar
+     
+   - **STEP 4.3 - Supplement with Non-Code Work (Optional):**
+     - Search for completed tickets WITHOUT associated PRs (non-code work):
+       - `python3 tools/jira_tool.py search-tickets "project=SD AND resolved >= [START_DATE] AND resolved <= [END_DATE]"`
+       - Check if ticket has associated PR from step 4.1
+       - If no PR exists, include as standalone achievement (e.g., documentation, manual tasks)
 
 5. **Synthesize Data and Generate Updated Content:**
 
-   - **Cross-Reference Data:** Combine results from all sub-agents
-     - Enrich Jira tickets with PR details from bitbucket-agent
-     - Link open PRs to in-progress Jira tickets
-     - Filter Slack discussions: exclude items where associated Jira ticket is resolved/closed
+   - **Cross-Reference Data:** 
+     - Primary source: Merged PRs from Bitbucket (Step 4.1)
+     - Enrich each PR with Jira ticket summary (Step 4.2)
+     - Group PRs by Jira ticket (multiple PRs may relate to same ticket)
+     - Add non-code completed work from Jira (Step 4.3)
+     - Link open PRs to their Jira tickets
 
    - **Reporting Period:**
      - Format: "Week X (YYYY-MM-DD - YYYY-MM-DD)"
      - Calculate week number and format dates
 
    - **Key Achievements (UPDATED):**
-     - Start with merged PRs, enrich with Jira context
-     - Format: "[Jira Summary] ([Ticket ID])" or "[Summary] (ID - repos)" for multi-repo
-     - Include "Done" tickets without PRs (non-code work)
-     - Sort by importance (customer-facing, critical first)
-     - Pipe-separated list
-     - **Jira References:** Use plain text IDs (e.g., "SD-1234"); wsr_tool.py auto-converts to links
+      - **PRIMARY SOURCE:** Merged PRs from reporting period
+      - For each Jira ticket with merged PR(s):
+        - Format: "[Jira Ticket Summary] ([Ticket ID] - repo)" 
+        - If multiple PRs for same ticket: "[Summary] ([Ticket ID] - repo1, repo2)"
+        - Example: "Matillion Hub migration - upgrade to v1.75.40 (SD-4674 - windcheater)"
+      - For PRs without Jira tickets:
+        - Format: "[Brief description from PR title] (repo)"
+        - Example: "Upgrade Terraform to v1.14.3 (laguna, pipeline, datatransfer)"
+      - Include completed Jira tickets WITHOUT PRs (non-code work) if significant
+      - Sort by importance (customer-facing, migrations, critical infrastructure first)
+      - Pipe-separated list
+      - **Jira References:** Use plain text IDs (e.g., "SD-1234"); wsr_tool.py auto-converts to links
 
    - **Upcoming Activities (UPDATED):**
-     - Open PRs at end of period: "[Jira Summary] - in code review (ID)"
-     - In-progress tickets: "[Jira Summary] - in progress (ID)"
-     - Unresolved Slack conversations (where Jira ticket not resolved): Brief description with context
+     - **PRIMARY SOURCE:** Open PRs from Bitbucket
+     - For each open PR:
+       - Format: "[Jira Ticket Summary] - in code review ([Ticket ID] - repo)"
+       - Example: "Image converter system - in code review (SD-4735 - laguna)"
+     - Include in-progress Jira tickets without open PRs if significant
      - Sort by priority, pipe-separated
 
    - **Executive Summary (UPDATED):**
+     - **CRITICAL:** Client-facing language - focus on BUSINESS VALUE, not technical details
      - 2-3 sentences summarizing the reporting period
-     - Count completed items from achievements
-     - Highlight major achievements
-     - Mention any critical upcoming items
+     - Use professional but human tone with first-person plural ("we") language
+     - Count: "[X] completed items" OR "[X] key accomplishments" 
+     - Highlight: Business impact of major achievements (e.g., "migration", "optimization", "enhancement")
+     - Mention: Any critical upcoming items
+     - **AVOID:** Technical details like "PRs", "merge conflicts", "repo names", "terraform versions"
+     - **GOOD:** "We completed the Matillion Hub migration and infrastructure updates"
+     - **BAD:** "We merged 17 PRs including 4 PRs to resolve merge conflicts in laguna repo"
      - Note: Blocker count remains same as previous WSR (not recalculated)
 
 6. **Generate WSR:**
@@ -119,18 +141,18 @@ This command duplicates the latest WSR and only updates specific fields based on
      - Do not delete tool/templates
      - Capture the Confluence page ID from output
 
-7. **Verify Page Creation:**
-   - **DELEGATE to confluence-agent:** Use Task tool to verify the newly created page
-     - Search for the newly created page with exact title
-     - Extract page ID and webui path from search results
-   - If NOT found: Report error - "WSR creation failed - page not found in Confluence space [SPACE_KEY]"
-   - If found: 
-     - **URL Construction:**
-       - From search results, get `_links.webui` field (e.g., "/spaces/SDRY/pages/51617366018/Weekly+Status+Report+2026-01-07")
-       - Build full URL: `https://daemonsolutions.atlassian.net/wiki` + `webui_path`
-       - **CRITICAL:** Do NOT add duplicate `/wiki/wiki/` - only use `/wiki/` once
-     - Verify URL matches format from latest WSR
-     - **Verify Parent Directory:** Confirm parent matches latest WSR
+ 7. **Verify Page Creation:**
+    - **DELEGATE to confluence-agent:** Use Task tool to verify the newly created page
+      - Search for the newly created page with exact title
+      - Extract page ID and webui path from search results
+    - If NOT found: Report error - "WSR creation failed - page not found in Confluence space [SPACE_KEY]"
+    - If found: 
+      - **URL Construction:**
+        - From search results, get `_links.webui` field (e.g., "/spaces/SDRY/pages/51617366018/Weekly+Status+Report+2026-01-07")
+        - Build full URL: `[confluence.server from config]` + `webui_path`
+        - **CRITICAL:** Do NOT add duplicate `/wiki/wiki/` - the server URL includes `/wiki/` if needed
+      - Verify URL matches format from latest WSR
+      - **Verify Parent Directory:** Confirm parent matches latest WSR
 
 8. **Verify Updated Fields:**
    - **DELEGATE to confluence-agent:** Fetch generated WSR content
@@ -142,10 +164,10 @@ This command duplicates the latest WSR and only updates specific fields based on
      - **Unchanged sections:** Blockers, RAID, Service Improvements match previous WSR exactly
    - Report any discrepancies to user
 
-9.  **Return to User:**
-   - **ONLY if page verified:** Return verified WSR URL and summary
-   - **URL Format:** `https://daemonsolutions.atlassian.net/wiki/spaces/[SPACE]/pages/[ID]/[TITLE]`
-   - **Example Output:** "WSR created: https://daemonsolutions.atlassian.net/wiki/spaces/SDRY/pages/51617366018/Weekly+Status+Report+2026-01-07"
+ 9.  **Return to User:**
+    - **ONLY if page verified:** Return verified WSR URL and summary
+    - **URL Format:** `[confluence.server from config]/wiki/spaces/[SPACE]/pages/[ID]/[TITLE]`
+    - **Example Output:** "WSR created: [confluence.server]/wiki/spaces/SDRY/pages/51617366018/Weekly+Status+Report+2026-01-07"
    - Include:
      - Latest WSR link used as reference
      - Reporting period used
@@ -159,46 +181,42 @@ This command duplicates the latest WSR and only updates specific fields based on
 
 ## Execution Strategy
 
-This command leverages specialized sub-agents as configured in `opencode.json` and `.opencode/skill/` files:
+This command uses Bitbucket PRs as the primary source of truth for work completed.
 
-### Sub-Agent Delegation (PARALLEL where possible):
+### Data Gathering Strategy:
 
-**When gathering information (Step 4):** Execute ALL sub-agents in PARALLEL using a single Task tool invocation with multiple agents:
-- **confluence-agent** (Gemini 2.5 Flash): Search WSRs, fetch content, verify pages
-- **bitbucket-agent** (Gemini 2.5 Flash): List repos, fetch PRs (merged and open), extract Jira references
-- **jira-agent** (Gemini 2.5 Flash): Get ticket summaries, categorize by status
-- **slack-agent** (Gemini 2.5 Flash): Fetch channel summaries, identify unresolved discussions
+**Step 4 - PR-First Approach:**
+1. **Bitbucket PRs (DIRECT):** Use `bitbucket_tool.py` directly to get all merged and open PRs
+   - Fastest and most accurate method
+   - Filter by created date to identify work in reporting period
+   - Extract Jira ticket IDs from PR titles
+   
+2. **Jira Verification (DIRECT):** Use `jira_tool.py` directly to:
+   - Get full ticket summaries for each Jira ID found in PRs
+   - Supplement with non-code work (tickets without PRs)
 
-**Benefits:**
-- **50% faster:** Parallel execution instead of sequential
-- **Higher quality:** Each agent has specialized knowledge from skill files
-- **Consistent:** Agents follow standardized patterns from skill documentation
+3. **Slack (OPTIONAL):** Only if specifically requested by user
+   - Can identify unresolved discussions or blockers
+   - Not part of standard WSR generation flow
 
-**Direct Execution (for simple 1-2 tool operations):**
-- **wsr_tool.py:** Use bash directly (Step 6) - single tool, simple operation
-- **Config reading:** Read `engagement_agent_config.json` directly (Step 2)
+**Why Direct Tool Usage:**
+- 50% cheaper than delegating to sub-agents
+- Faster (1 LLM call vs 3)
+- Full control over data filtering and processing
+- Clear visibility into what data is being gathered
 
-### Task Tool Usage Pattern:
+**When to Use Sub-Agents:**
+- Only for complex queries requiring interpretation
+- Only when user specifically requests comprehensive Slack analysis
+- NOT for standard WSR generation
 
-```
-Use Task tool with:
-- subagent_type: "confluence-agent" | "bitbucket-agent" | "jira-agent" | "slack-agent"
-- prompt: Detailed instructions including config context, date ranges, expected output format
-- description: Brief task summary
+### Key Principles
 
-Example (Step 4):
-Invoke ALL agents in parallel in a SINGLE message with multiple Task tool calls:
-1. Task(subagent_type="bitbucket-agent", prompt="[detailed instructions for PR gathering]")
-2. Task(subagent_type="jira-agent", prompt="[detailed instructions for ticket summary]")
-3. Task(subagent_type="slack-agent", prompt="[detailed instructions for channel summary]")
-```
-
-## Key Principles
-
-- **Duplication-First:** Copy the entire previous WSR structure
+- **PR-First Methodology:** Bitbucket PRs are source of truth for completed work
+- **Date Accuracy:** Use PR created/merged dates, not Jira resolution dates
+- **Client-Facing Language:** Executive summary must focus on business value, not technical details
 - **Minimal Changes:** Only update Reporting Period, Executive Summary, Achievements, Upcoming Activities
 - **Preserve History:** Blockers, RAID, Service Improvements carry forward unchanged
 - **Default Period:** 7 days unless user specifies otherwise
 - **Jira Integration:** Auto-link all Jira ticket IDs in the final report
 - **Verification:** Always verify page creation and updated fields before returning URL
-- **Parallel Execution:** Use Task tool to invoke multiple sub-agents concurrently for maximum efficiency
