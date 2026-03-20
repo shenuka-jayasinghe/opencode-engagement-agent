@@ -137,7 +137,7 @@ This command duplicates the latest WSR and only updates specific fields based on
 
    - **CRITICAL:**
      - Pass blockers, RAID, and service improvements EXACTLY as they appear in previous WSR
-     - Tool auto-converts Jira IDs to links
+     - Tool auto-converts Jira IDs to links using the Jira server URL from `config/engagement_agent_config.json`
      - Do not delete tool/templates
      - Capture the Confluence page ID from output
 

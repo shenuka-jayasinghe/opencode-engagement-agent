@@ -63,6 +63,88 @@ def create_ticket(client, project_key, summary, description, issue_type="Task"):
         return f"Failed to create ticket: {e}"
 
 
+def transition_ticket(client, ticket_number, transition_name):
+    """Transitions a Jira ticket to a new status.
+    
+    Args:
+        client: Jira client
+        ticket_number: Ticket key (e.g., "SD-123")
+        transition_name: Name of the transition (e.g., "Done", "Resolved", "Close", "In Progress")
+    
+    Returns:
+        Success or error message
+    """
+    try:
+        issue = client.issue(ticket_number)
+        
+        # Get available transitions for this issue
+        transitions = client.transitions(issue)
+        
+        # Find matching transition (case-insensitive)
+        transition_id = None
+        available_transitions = []
+        for t in transitions:
+            available_transitions.append(t['name'])
+            if t['name'].lower() == transition_name.lower():
+                transition_id = t['id']
+                break
+        
+        if not transition_id:
+            return f"Failed to transition {ticket_number}: Transition '{transition_name}' not found.\nAvailable transitions: {', '.join(available_transitions)}"
+        
+        # Perform the transition
+        client.transition_issue(issue, transition_id)
+        return f"Successfully transitioned {ticket_number} to '{transition_name}'"
+        
+    except Exception as e:
+        return f"Failed to transition {ticket_number}: {e}"
+
+
+def close_ticket_and_subtasks(client, ticket_number, transition_name="Done"):
+    """Closes a ticket and all its subtasks.
+    
+    Args:
+        client: Jira client
+        ticket_number: Parent ticket key (e.g., "SD-123")
+        transition_name: Name of the transition to apply (default: "Done")
+    
+    Returns:
+        Summary of closed tickets
+    """
+    try:
+        # Get parent issue
+        parent = client.issue(ticket_number)
+        
+        results = []
+        failed = []
+        
+        # Close all subtasks first
+        if hasattr(parent.fields, 'subtasks') and parent.fields.subtasks:
+            for subtask in parent.fields.subtasks:
+                result = transition_ticket(client, subtask.key, transition_name)
+                if "Successfully" in result:
+                    results.append(f"✓ {subtask.key}")
+                else:
+                    failed.append(f"✗ {subtask.key}: {result}")
+        
+        # Close parent ticket
+        parent_result = transition_ticket(client, ticket_number, transition_name)
+        if "Successfully" in parent_result:
+            results.append(f"✓ {ticket_number} (parent)")
+        else:
+            failed.append(f"✗ {ticket_number}: {parent_result}")
+        
+        # Build summary
+        summary = f"Closed {len(results)} ticket(s):\n" + "\n".join(results)
+        if failed:
+            summary += f"\n\nFailed to close {len(failed)} ticket(s):\n" + "\n".join(failed)
+        
+        return summary
+        
+    except Exception as e:
+        return f"Failed to close tickets: {e}"
+
+
 def get_summary(client, project_key, days=7, max_results=50, start_date=None, end_date=None):
     """Gets a summary of Jira tickets for the project.
 
@@ -139,6 +221,16 @@ if __name__ == "__main__":
     create_ticket_parser.add_argument("--description", type=str, required=True)
     create_ticket_parser.add_argument("--type", type=str, default="Task")
 
+    # transition-ticket command
+    transition_parser = subparsers.add_parser("transition-ticket")
+    transition_parser.add_argument("ticket_number", type=str, help="Ticket key (e.g., SD-123)")
+    transition_parser.add_argument("transition_name", type=str, help="Transition name (e.g., Done, Resolved, Close)")
+
+    # close-ticket-and-subtasks command
+    close_parser = subparsers.add_parser("close-ticket-and-subtasks")
+    close_parser.add_argument("ticket_number", type=str, help="Parent ticket key (e.g., SD-123)")
+    close_parser.add_argument("--transition", type=str, default="Done", help="Transition name (default: Done)")
+
     args = parser.parse_args()
     client = get_jira_client()
 
@@ -167,3 +259,9 @@ if __name__ == "__main__":
 
     elif args.command == "create-ticket":
         print(create_ticket(client, args.project_key, args.summary, args.description, args.type))
+
+    elif args.command == "transition-ticket":
+        print(transition_ticket(client, args.ticket_number, args.transition_name))
+
+    elif args.command == "close-ticket-and-subtasks":
+        print(close_ticket_and_subtasks(client, args.ticket_number, args.transition))

@@ -1,7 +1,8 @@
 {
   "$schema": "https://opencode.ai/config.json",
-   "instructions": ["INSTRUCTIONS.md"],
-   "theme": "default",
+  "instructions": [
+    "INSTRUCTIONS.md"
+  ],
   "enabled_providers": [
     "google",
     "github-copilot",

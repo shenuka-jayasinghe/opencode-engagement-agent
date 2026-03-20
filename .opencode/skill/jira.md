@@ -287,6 +287,134 @@ python3 tools/jira_tool.py create-ticket \
 
 ---
 
+### 5. Transition Tickets
+
+**Command:** `transition-ticket`
+
+Transitions a Jira ticket to a new status (e.g., Done, Resolved, In Progress, Close).
+
+#### Usage Pattern:
+```bash
+cd $PWD && \
+source <venv_path>/bin/activate && \
+python3 tools/jira_tool.py transition-ticket <ticket_number> <transition_name>
+```
+
+#### Parameters:
+- `ticket_number` (required): Ticket key (e.g., "SD-123")
+- `transition_name` (required): Name of the transition (e.g., "Done", "Resolved", "Close", "In Progress")
+
+#### Response Format:
+```
+Successfully transitioned SD-123 to 'Done'
+```
+
+Or if transition is not available:
+```
+Failed to transition SD-123: Transition 'Closed' not found.
+Available transitions: Done, In Progress, Won't Fix
+```
+
+#### Best Practices:
+- **Check available transitions:** If unsure, the tool will show available transitions on error
+- **Workflow-specific:** Transition names depend on your Jira workflow configuration
+- **Common transitions:** "To Do", "In Progress", "Done", "Resolved", "Close", "Won't Fix"
+- **Case-sensitive:** Use exact transition names (though the tool matches case-insensitively)
+
+#### Common Use Cases:
+
+**Close a completed ticket:**
+```bash
+python3 tools/jira_tool.py transition-ticket SD-123 Done
+```
+
+**Move a ticket to in progress:**
+```bash
+python3 tools/jira_tool.py transition-ticket SD-456 "In Progress"
+```
+
+**Resolve a bug:**
+```bash
+python3 tools/jira_tool.py transition-ticket SD-789 Resolved
+```
+
+---
+
+### 6. Close Ticket and All Subtasks
+
+**Command:** `close-ticket-and-subtasks`
+
+Closes a parent ticket and all its subtasks in one operation. This is particularly useful for:
+- Security findings with multiple sub-findings
+- Epics with multiple stories
+- Feature sets with multiple tasks
+
+#### Usage Pattern:
+```bash
+cd $PWD && \
+source <venv_path>/bin/activate && \
+python3 tools/jira_tool.py close-ticket-and-subtasks <ticket_number> [--transition <name>]
+```
+
+#### Parameters:
+- `ticket_number` (required): Parent ticket key (e.g., "SD-4830")
+- `--transition` (optional, default: "Done"): Transition name to apply to all tickets
+
+#### Response Format:
+```
+Closed 8 ticket(s):
+✓ SD-4838
+✓ SD-4839
+✓ SD-4840
+✓ SD-4841
+✓ SD-4842
+✓ SD-4843
+✓ SD-4844
+✓ SD-4830 (parent)
+```
+
+Or with failures:
+```
+Closed 5 ticket(s):
+✓ SD-4838
+✓ SD-4839
+✓ SD-4830 (parent)
+
+Failed to close 2 ticket(s):
+✗ SD-4840: Transition 'Done' not found. Available transitions: Resolved, Won't Fix
+✗ SD-4841: Transition 'Done' not found. Available transitions: Resolved, Won't Fix
+```
+
+#### Best Practices:
+- **Always ask for confirmation** before bulk closing tickets
+- **Review the ticket first:** Use `get-ticket` to understand what you're closing
+- **Check subtasks:** Use `search-tickets "parent = SD-XXX"` to see all subtasks
+- **Custom workflows:** If subtasks have different workflows, specify the appropriate transition with `--transition`
+- **Partial failures:** Review the failure summary to identify which tickets need manual intervention
+
+#### Common Use Cases:
+
+**Close a security finding and all sub-findings:**
+```bash
+# First, check what subtasks exist
+python3 tools/jira_tool.py search-tickets "parent = SD-4830" --max-results 100
+
+# Then close all
+python3 tools/jira_tool.py close-ticket-and-subtasks SD-4830
+```
+
+**Close an epic and all stories with a custom transition:**
+```bash
+python3 tools/jira_tool.py close-ticket-and-subtasks SD-5000 --transition Resolved
+```
+
+**Close a feature set marked as "Won't Fix":**
+```bash
+python3 tools/jira_tool.py close-ticket-and-subtasks SD-6000 --transition "Won't Fix"
+```
+
+---
+
 ## Configuration
 
 The tool reads configuration from `engagement_agent_config.json`:
@@ -395,11 +523,21 @@ When creating Confluence documentation, reference Jira tickets for traceability.
 
 2. **Date Filtering:** All date filtering is based on the "updated" field, not "created". This means tickets created outside the date range but updated within it will be included.
 
-3. **Read-Only vs. Write:** Only `create-ticket` performs a write operation. All other commands are read-only.
+3. **Write Operations:** The tool supports:
+   - ✅ Creating new tickets (`create-ticket`)
+   - ✅ Transitioning ticket status (`transition-ticket`, `close-ticket-and-subtasks`)
+   - ❌ Updating ticket fields (assignee, description, etc.)
+   - ❌ Adding comments or attachments
+   - ❌ Deleting tickets
 
 4. **Field Limitations:** `get-ticket` and `search-tickets` only return key, summary, and description. For additional fields (assignee, priority, custom fields), you'll need to enhance the tool.
 
 5. **Pagination:** Results are limited by `--max-results`. Very large projects may require multiple queries with pagination.
+
+6. **Transition Limitations:** 
+   - Transition names are workflow-specific and must match exactly
+   - `close-ticket-and-subtasks` applies the same transition to all subtasks (may fail if they have different workflows)
+   - Does not recursively close sub-subtasks (only direct children)
 
 ---
 

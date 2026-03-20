@@ -4,18 +4,30 @@ This document provides detailed information about available tools, their capabil
 
 ## **SECURITY: Read-Only Operations**
 
-**CRITICAL SAFETY GUARANTEE: All tools in this directory are READ-ONLY with the exception of creating NEW documents. NO tool can:**
+**CRITICAL SAFETY GUARANTEE: All tools in this directory prioritize read operations with limited write capabilities:**
 
-- ❌ **Overwrite or update existing documents** (Confluence pages, Jira tickets, etc.)
-- ❌ **Send emails** (Gmail tool is search-only)
-- ❌ **Send Slack messages** (Slack tool can only read messages)
-- ❌ **Modify code repositories** (Bitbucket tool is read-only)
+**❌ Tools CANNOT:**
+- Overwrite or update existing Confluence pages
+- Update Jira ticket descriptions, assignees, or custom fields
+- Send emails (Gmail tool is search-only)
+- Send Slack messages (Slack tool can only read messages)
+- Modify code repositories (Bitbucket tool is read-only)
+- Delete any resources
 
-**The ONLY write operation permitted is creating NEW documents:**
-- ✅ Create new Confluence pages (cannot update existing ones)
-- ✅ Create new Jira tickets (cannot update existing ones)
+**✅ Tools CAN:**
+- Create new Confluence pages (cannot update existing ones)
+- Create new Jira tickets (cannot update existing ones)
+- Transition Jira ticket status (e.g., move to Done, Resolved, Close)
+- Close Jira tickets and subtasks
 
-This design ensures the agent can gather information and generate new reports without risk of accidentally modifying or deleting existing data.
+**Why Transition Operations Are Safe:**
+- Transitioning ticket status (e.g., "To Do" → "In Progress" → "Done") is a standard workflow operation
+- All transitions are logged in Jira's audit trail with timestamp and user
+- Transitions do not modify ticket content (descriptions, comments, attachments)
+- Transitions can be reversed if needed (e.g., reopen a closed ticket)
+- This enables automation of common workflows (bulk closing completed work) while protecting data integrity
+
+This design ensures the agent can gather information, manage workflows, and generate new reports without risk of accidentally modifying or deleting critical data.
 
 ## **CRITICAL: Python Virtual Environment Requirement**
 
@@ -261,6 +273,82 @@ python3 tools/jira_tool.py create-ticket --project-key <key> --summary <summary>
 **Returns:** Success message with created ticket key
 
 **Note:** This tool can create new tickets but **cannot update or modify existing tickets**.
+
+---
+
+##### `transition-ticket`
+Transitions a Jira ticket to a new status (e.g., Done, Resolved, In Progress, Close).
+
+```bash
+python3 tools/jira_tool.py transition-ticket <ticket_number> <transition_name>
+```
+
+**Parameters:**
+- `ticket_number` (required): Ticket key (e.g., "SD-123")
+- `transition_name` (required): Name of the transition (e.g., "Done", "Resolved", "Close", "In Progress")
+
+**Returns:** Success message or list of available transitions if the specified transition is not found
+
+**Limitations:**
+- Transition names are workflow-specific and case-sensitive
+- If the transition is not available for the ticket's current status, it will fail
+- Common transition names: "Done", "Resolved", "Close", "In Progress", "To Do"
+
+**Best Practices:**
+- Check ticket status first to understand available transitions
+- Common workflows have transitions like: "To Do" → "In Progress" → "Done"
+- If unsure, the tool will display available transitions on error
+
+**Example:**
+```bash
+# Close a single ticket
+python3 tools/jira_tool.py transition-ticket SD-123 Done
+
+# Resolve a bug
+python3 tools/jira_tool.py transition-ticket SD-456 Resolved
+```
+
+---
+
+##### `close-ticket-and-subtasks`
+Closes a parent ticket and all its subtasks in one operation.
+
+```bash
+python3 tools/jira_tool.py close-ticket-and-subtasks <ticket_number> [--transition <name>]
+```
+
+**Parameters:**
+- `ticket_number` (required): Parent ticket key (e.g., "SD-123")
+- `--transition` (optional, default: "Done"): Transition name to apply to all tickets
+
+**Returns:** Summary showing which tickets were successfully closed and which failed
+
+**Limitations:**
+- Applies the same transition to all subtasks and parent
+- If subtasks have different workflows, some may fail while others succeed
+- Does not recursively close sub-subtasks (only direct children)
+
+**Best Practices:**
+- Use this for bulk closing related work items
+- Review the summary to identify any failed transitions
+- If using a custom workflow, specify the correct transition name with --transition
+
+**Example:**
+```bash
+# Close a parent ticket and all subtasks with "Done"
+python3 tools/jira_tool.py close-ticket-and-subtasks SD-4830
+
+# Use a different transition name
+python3 tools/jira_tool.py close-ticket-and-subtasks SD-4830 --transition Resolved
+
+# Close security finding with all sub-findings
+python3 tools/jira_tool.py close-ticket-and-subtasks SD-5000 --transition "Won't Fix"
+```
+
+**Common Use Cases:**
+- Closing security findings after remediation
+- Bulk closing completed epics with all stories
+- Marking entire feature sets as resolved
 
 ---
 

@@ -1,24 +1,39 @@
 import argparse
 import os
 import re
+import json
 from jinja2 import Environment, FileSystemLoader
 from confluence_tool import get_confluence_client, create_confluence_page
 
 
-def link_jira_tickets(text, jira_base_url="https://your-domain.atlassian.net"):
+def get_jira_base_url(config_file="config/engagement_agent_config.json"):
+    """Gets the Jira base URL from the config file."""
+    try:
+        with open(config_file, "r") as f:
+            config = json.load(f)
+        return config.get("jira", {}).get("server", "https://your-domain.atlassian.net")
+    except Exception:
+        return "https://your-domain.atlassian.net"
+
+
+def link_jira_tickets(text, jira_base_url=None):
     """
     Converts plain text Jira ticket references (e.g., PROJ-1234) to HTML links.
     Only converts if the ticket reference is not already within an <a> tag.
 
     Args:
         text: The text containing potential Jira ticket references
-        jira_base_url: Base URL for the Jira instance
+        jira_base_url: Base URL for the Jira instance (defaults to config value)
 
     Returns:
         Text with Jira tickets converted to links
     """
     if not text:
         return text
+    
+    # Get Jira base URL from config if not provided
+    if jira_base_url is None:
+        jira_base_url = get_jira_base_url()
 
     # First, protect existing links by temporarily replacing them
     # This prevents double-linking already-linked tickets
